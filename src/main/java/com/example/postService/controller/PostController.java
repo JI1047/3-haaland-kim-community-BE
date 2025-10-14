@@ -1,0 +1,61 @@
+package com.example.postService.controller;
+
+import com.example.postService.dto.post.response.GetPostListResponseDto;
+import com.example.postService.dto.post.response.GetPostResponseDto;
+import com.example.postService.dto.post.resquest.CreatePostRequestDto;
+import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
+import com.example.postService.service.post.PostService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/posts")
+@RequiredArgsConstructor
+public class PostController {
+
+    private final PostService postService;
+
+    //게시물 목록 조회(list) controller
+    @GetMapping("/list")
+    public ResponseEntity<List<GetPostListResponseDto>> getAllPosts(@RequestParam int page, @RequestParam int size) {
+        return postService.getPosts(page, size);
+    }
+
+    //게시물 상세 조회 controller
+    @GetMapping("/{postId}")
+    public ResponseEntity<GetPostResponseDto> getPost(@PathVariable Long postId) {
+        return postService.getPost(postId);
+
+    }
+
+    //게시물 작성 controller
+    @PostMapping("/create")
+    public ResponseEntity<String> createPost(@RequestBody CreatePostRequestDto dto, HttpServletRequest httpServletRequest) {
+
+        return postService.createPost(dto, httpServletRequest);
+    }
+
+    //게시물 update controller
+    @PutMapping("/{postId}/update")
+    public ResponseEntity<String> updatePost(@RequestBody UpdatePostRequestDto dto, @PathVariable Long postId) {
+        return postService.updatePost(dto, postId);
+    }
+
+    //게시물 삭제 controller
+    @DeleteMapping("/{postId}/delete")
+    public ResponseEntity<String> deletePost(@PathVariable Long postId) {
+        return postService.deletePost(postId);
+    }
+
+
+    //게시물 좋아요 처리 controller
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<String> likePost(@PathVariable Long postId,HttpServletRequest httpServletRequest) {
+        return postService.updatePostLike(postId,httpServletRequest);
+    }
+}
