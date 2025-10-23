@@ -2,6 +2,7 @@ package com.example.postService.service.post.impl;
 
 import com.example.postService.dto.comment.response.GetCommentResponseDto;
 import com.example.postService.dto.post.response.GetPostListResponseDto;
+import com.example.postService.dto.post.response.GetPostListResponseWrapperDto;
 import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
@@ -23,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -166,10 +168,10 @@ public class PostServiceImpl implements PostService {
      *
      */
     @Override//게시물 목록 조회
-    public ResponseEntity<List<GetPostListResponseDto>> getPosts(int page, int size) {
+    public ResponseEntity<GetPostListResponseWrapperDto> getPosts(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
 
-        List<Post> posts = postJpaRepository.findListPostQueryDSL(pageRequest);
+        Page<Post> posts = postJpaRepository.findListPostQueryDSL(pageRequest);
 
         List<GetPostListResponseDto> responseDtoList = new ArrayList<>();
         for (Post post : posts) {
@@ -182,7 +184,8 @@ public class PostServiceImpl implements PostService {
 
         }
 
-        return ResponseEntity.ok(responseDtoList);
+        GetPostListResponseWrapperDto responseWrapperDto= new GetPostListResponseWrapperDto(responseDtoList,posts.hasNext());
+        return ResponseEntity.ok(responseWrapperDto);
 
     }
 
@@ -215,18 +218,9 @@ public class PostServiceImpl implements PostService {
 
         UserProfile userProfile = post.getUserProfile();
 
-        List<Comment> comments = postJpaRepository.findListCommentQueryDSL(post);
 
 
-        List<GetCommentResponseDto> responseDtoList = new ArrayList<>();
-
-        for (Comment comment : comments) {
-            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, comment.getUserProfile());
-
-            responseDtoList.add(dto);
-        }
-
-        GetPostResponseDto getPostResponseDto = postMapper.toGetPostResponseDto(post, postContent, postView, userProfile, responseDtoList);
+        GetPostResponseDto getPostResponseDto = postMapper.toGetPostResponseDto(post, postContent, postView, userProfile);
 
         return ResponseEntity.ok(getPostResponseDto);
 

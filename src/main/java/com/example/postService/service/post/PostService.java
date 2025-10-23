@@ -1,6 +1,7 @@
 package com.example.postService.service.post;
 
 import com.example.postService.dto.post.response.GetPostListResponseDto;
+import com.example.postService.dto.post.response.GetPostListResponseWrapperDto;
 import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
@@ -20,7 +21,7 @@ public interface PostService {
     @Transactional
     ResponseEntity<String> deletePost(Long postId);
 
-    ResponseEntity<List<GetPostListResponseDto>> getPosts(int page, int size);
+    ResponseEntity<GetPostListResponseWrapperDto> getPosts(int page, int size);
 
     ResponseEntity<GetPostResponseDto> getPost(Long postId);
 

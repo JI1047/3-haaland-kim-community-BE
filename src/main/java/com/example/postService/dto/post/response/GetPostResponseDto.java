@@ -32,8 +32,6 @@ public class GetPostResponseDto {
 
     private String profileImage;//사용자 프로필 이미지
 
-    private List<GetCommentResponseDto> comments;
-
 }
 /**
  * 게시물 상세 조회 응답 dto

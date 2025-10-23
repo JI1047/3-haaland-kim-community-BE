@@ -112,8 +112,7 @@ public class UserServiceImpl implements UserService {
         //세션 생성
         HttpSession httpSession = request.getSession();
         httpSession.setAttribute("user", userSession);
-        httpSession.setMaxInactiveInterval(60 * 30);//세션 만료 시간 설정(30분)
-
+        httpSession.setMaxInactiveInterval(60 * 60);//세션 만료 시간 설정(30분)
 
         return ResponseEntity.ok("로그인 성공!");
 
@@ -124,8 +123,27 @@ public class UserServiceImpl implements UserService {
      * 2. 응답에 필요한 dto mapper을 통해 변환후 반환
      */
     @Override
-    public ResponseEntity<GetUserResponseDto> get(Long userId) {
-        Optional<User> userOptional = userJpaRepository.findById(userId);//PathVariable로 부터 온 userId를 통해 DB에서 User조회
+    public ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest) {
+        HttpSession httpSession = httpServletRequest.getSession(false);
+
+        if (httpSession == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+
+        if (userSession == null || userSession.getUserProfileId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+
+        if (userProfileOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        UserProfile userProfile = userProfileOptional.get();
+
+        Optional<User> userOptional = userJpaRepository.findByUserProfile(userProfile);//PathVariable로 부터 온 userId를 통해 DB에서 User조회
 
         if (userOptional.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -145,10 +163,21 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, Long userId) {
+    public ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest) {
+        HttpSession httpSession = httpServletRequest.getSession(false);
+
+        if (httpSession == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+
+        if (userSession == null || userSession.getUserProfileId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
 //        PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userId);
+        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
 
         if (userProfileOptional.isEmpty()) {
             return ResponseEntity.badRequest().body("해당하는 사용자가 존재 하지 않습니다");
@@ -172,15 +201,32 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, Long userId) {
+    public ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest) {
+        HttpSession httpSession = httpServletRequest.getSession(false);
 
+        if (httpSession == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+
+        if (userSession == null || userSession.getUserProfileId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+//        PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
+        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        if (userProfileOptional.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        UserProfile userProfile = userProfileOptional.get();
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             return ResponseEntity.badRequest()
                     .body("비밀번호와 비밀번호 확인히 일치하지 않습니다.");
         }//입력된 비밀번호/비밀번호 확인이 일치한지 확인 예외 처리
 
         //PathVariable로 부터 온 userId를 통해 DB에서 User조회
-        Optional<User> userOptional = userJpaRepository.findById(userId);
+        Optional<User> userOptional = userJpaRepository.findByUserProfile(userProfile);
 
         if (userOptional.isEmpty()) {
             return ResponseEntity.notFound().build();

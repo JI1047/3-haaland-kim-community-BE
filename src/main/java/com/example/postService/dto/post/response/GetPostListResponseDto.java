@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 public class GetPostListResponseDto {
 
+    private Long postId;
+
     private String title;
 
     private LocalDateTime createdAt;
@@ -27,7 +29,6 @@ public class GetPostListResponseDto {
 
 
     private String profileImage;//사용자 프로필 이미지
-
 }
 /**
  * 게시물 목록 조회 응답 dto

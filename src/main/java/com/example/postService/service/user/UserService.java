@@ -19,12 +19,12 @@ public interface UserService {
     ResponseEntity<String> login(LoginRequestDto dto, HttpServletRequest request);
 
     //회원 정보 조회 Service 로직
-    ResponseEntity<GetUserResponseDto> get(Long UserId);
+    ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest);
 
     //닉네임,프로필 이미지 수정 Service 로직
-    ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, Long UserId);
+    ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest);
 
-    ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, Long userId);
+    ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest);
 
     ResponseEntity<String> softDelete(Long userId);
 //

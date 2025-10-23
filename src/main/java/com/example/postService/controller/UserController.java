@@ -40,23 +40,23 @@ public class UserController {
     }
 
     //회원정보 controller
-    @GetMapping("/{userId}")
-    public ResponseEntity<GetUserResponseDto> get(@PathVariable Long userId) {
-        return userService.get(userId);
+    @GetMapping()
+    public ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest) {
+        return userService.get(httpServletRequest);
 
     }
 
 //   회원정보 수정(PUT)/nickname,profileImage 수정
-    @PutMapping("/{userId}/profile")
-    public ResponseEntity<String> updateProfile(@RequestBody UpdateUserProfileRequestDto dto, @PathVariable Long userId) {
+    @PutMapping("/profile")
+    public ResponseEntity<String> updateProfile(@RequestBody UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest) {
 
-        return userService.updateProfile(dto, userId);
+        return userService.updateProfile(dto, httpServletRequest);
     }
 
     //비밀번호 변경 controller
-    @PutMapping("/{userId}/password")
-    public ResponseEntity<String> updatePassword(@RequestBody UpdateUserPasswordRequestDto dto, @PathVariable Long userId) {
-        return userService.updatePassword(dto, userId);
+    @PutMapping("/password")
+    public ResponseEntity<String> updatePassword(@RequestBody UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest) {
+        return userService.updatePassword(dto, httpServletRequest);
     }
 
 
@@ -67,11 +67,6 @@ public class UserController {
         return userService.softDelete(userId);
     }
 
-//    //회원정보 삭제
-//    @DeleteMapping("/{userId}/hard-delete")
-//    public ResponseEntity<String> hardDelete(@PathVariable Long userId) {
-//        return userService.hardDelete(userId);
-//    }
 
     /**
      * 로그아웃 시 세션 무효화 진행

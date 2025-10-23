@@ -1,6 +1,7 @@
 package com.example.postService.controller;
 
 import com.example.postService.dto.post.response.GetPostListResponseDto;
+import com.example.postService.dto.post.response.GetPostListResponseWrapperDto;
 import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
@@ -22,7 +23,7 @@ public class PostController {
 
     //게시물 목록 조회(list) controller
     @GetMapping("/list")
-    public ResponseEntity<List<GetPostListResponseDto>> getAllPosts(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<GetPostListResponseWrapperDto> getAllPosts(@RequestParam int page, @RequestParam int size) {
         return postService.getPosts(page, size);
     }
 

@@ -32,10 +32,9 @@ public interface PostMapper {
     GetPostListResponseDto toGetPostListResponseDto(Post post, PostView postView, UserProfile userProfile);
 
 
-    //게시물 상세 조회 mapper
-    @Mapping(source = "responseDtoList", target = "comments")
-    GetPostResponseDto toGetPostResponseDto(Post post, PostContent postContent, PostView postView, UserProfile userProfile, List<GetCommentResponseDto> responseDtoList);
 
+
+    GetPostResponseDto toGetPostResponseDto(Post post, PostContent postContent, PostView postView, UserProfile userProfile);
 
     //PostLike 생성 mapper
     @Mapping(target = "postLikeId", ignore = true)

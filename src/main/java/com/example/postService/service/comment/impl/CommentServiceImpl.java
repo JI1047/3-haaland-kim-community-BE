@@ -2,6 +2,8 @@ package com.example.postService.service.comment.impl;
 
 import com.example.postService.dto.comment.request.CreateCommentDto;
 import com.example.postService.dto.comment.request.UpdateCommentDto;
+import com.example.postService.dto.comment.response.GetCommentListResponseWrapperDto;
+import com.example.postService.dto.comment.response.GetCommentResponseDto;
 import com.example.postService.dto.user.session.UserSession;
 import com.example.postService.entity.comment.Comment;
 import com.example.postService.entity.post.Post;
@@ -15,10 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,6 +38,23 @@ public class CommentServiceImpl implements CommentService {
 
     private final UserProfileJpaRepository userProfileJpaRepository;
 
+    @Override
+    public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Comment> comments = commentJpaRepository.findAllByPostId(postId, pageRequest);
+
+        List<GetCommentResponseDto> responseDtoList = new ArrayList<>();
+        for (Comment comment : comments) {
+            UserProfile userProfile = comment.getUserProfile();
+            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile);
+            responseDtoList.add(dto);
+        }
+
+        GetCommentListResponseWrapperDto wrapperDto =
+                new GetCommentListResponseWrapperDto(responseDtoList, comments.isLast());
+
+        return ResponseEntity.ok(wrapperDto);
+    }
 
     /**
      * 댓글 생성 로직
