@@ -18,11 +18,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Service
 @RequiredArgsConstructor//private final 로 선언된 객체들의 생성자들을 자동으로 생성해줌
@@ -45,12 +46,16 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public CreateUserResponseDto signUp(CreateUserRequestDto dto) {
-        // 이메일 중복 체크
-        Optional<User> userOptional = userJpaRepository.findByEmail(dto.getEmail());
+
 
         //이메일 중복 시 예외 처리
-        if (userOptional.isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        if (userJpaRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("이미 존재하는 이메일 입니다.");
+        }
+
+        //닉네임 중복 시 예외 처리
+        if(userJpaRepository.existsByUserProfile_Nickname(dto.getNickname())) {
+            throw new IllegalArgumentException("이미 존재하는 닉네임 입니다.");
         }
 
         //BCrypt 방식으로 패스워드 암호화 진행
@@ -87,21 +92,16 @@ public class UserServiceImpl implements UserService {
      *
      */
     @Override
-    public ResponseEntity<String> login(LoginRequestDto dto, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> login(LoginRequestDto dto, HttpServletRequest request) {
 
         //입력받은 email을 통해 사용자 존재 여부를 DB조회를 통해 확인
-        Optional<User> userOptional = userJpaRepository.findByEmail(dto.getEmail());
+        User user= userJpaRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("존재 하지 않는 사용자 입니다."));
 
-        //해당하는 email의 user가 없을 시 예외 처리
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 이메일의 유저가 없습니다.");
-        }
-
-        User user = userOptional.get();
 
         //passwordEncoderUtil에서 생성해놓은 matches메서드를 통해 입력 password와 암호화된 password를 비교
         if (!PasswordEncoderUtil.matches(dto.getPassword(), user.getPassword())) {
-            return ResponseEntity.badRequest().body("비밀번호가 틀렸습니다.");
+            throw new IllegalArgumentException("비밀번호가 일치 하지 않습니다.");
         }
 
         UserProfile userProfile = user.getUserProfile();
@@ -114,8 +114,12 @@ public class UserServiceImpl implements UserService {
         httpSession.setAttribute("user", userSession);
         httpSession.setMaxInactiveInterval(60 * 60);//세션 만료 시간 설정(30분)
 
-        return ResponseEntity.ok("로그인 성공!");
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "로그인 성공!");
+        response.put("status", 200);
 
+        return ResponseEntity.ok(response);
     }
 
     /**회원 정보 조회 Service 로직
@@ -126,30 +130,27 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest) {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
+        //세션 자체가 없을 경우
         if (httpSession == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
+        //userSession이 없거나 userSession에 해당하는 User정보가 없는 경우
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        if (userProfileOptional.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        UserProfile userProfile = userProfileOptional.get();
 
-        Optional<User> userOptional = userJpaRepository.findByUserProfile(userProfile);//PathVariable로 부터 온 userId를 통해 DB에서 User조회
+        User user = userJpaRepository.findByUserProfile(userProfile)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }//해당 user없을시 예외 처리
 
-        User user = userOptional.get();
+
         //Mapper을 통해 응답 dto 변환 후 반환
         return ResponseEntity.ok(userMapper.userToUGetUserResponseDto(user));
     }
@@ -167,24 +168,23 @@ public class UserServiceImpl implements UserService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
 //        PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        if (userProfileOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당하는 사용자가 존재 하지 않습니다");
-        }//해당 userProfile없을 시 예외 처리
+
 
 //      UserProfile클래스 업데이트 메서드를 통해서 profile 업데이트
-        userProfileOptional.get().updateProfile(dto.getNickname(), dto.getProfileImage());
+        userProfile.updateProfile(dto.getNickname(), dto.getProfileImage());
 
         return ResponseEntity.ok("닉네임,프로필 이미지 수정 성공!");
     }
@@ -205,38 +205,34 @@ public class UserServiceImpl implements UserService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().build();
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
-//        PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
-        if (userProfileOptional.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        UserProfile userProfile = userProfileOptional.get();
+        //PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
-            return ResponseEntity.badRequest()
-                    .body("비밀번호와 비밀번호 확인히 일치하지 않습니다.");
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.!");
         }//입력된 비밀번호/비밀번호 확인이 일치한지 확인 예외 처리
 
         //PathVariable로 부터 온 userId를 통해 DB에서 User조회
-        Optional<User> userOptional = userJpaRepository.findByUserProfile(userProfile);
+        User user = userJpaRepository.findByUserProfile(userProfile)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }//해당하는 User객체 없을 시 예외 처리
+
 
         //BCrypt 방식으로 패스워드 암호화 진행
         String encodedPassword = PasswordEncoderUtil.encode(dto.getNewPassword());
 
         //User클래스 업데이트 메서드를 통해 password 업데이트
-        userOptional.get().updatePassword(encodedPassword);
+        user.updatePassword(encodedPassword);
 
         return ResponseEntity.ok("비밀번호 변경 성공");
 
@@ -255,14 +251,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public ResponseEntity<String> softDelete(Long userId) {
 
+
         //PathVariable로 부터 온 userId를 통해 DB에서 User조회
-        Optional<User> userOptional = userJpaRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당하는 사용자가 존재하지 않습니다");
-        }//해당하는 User객체 없을 시 예외 처리
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 찾을 수 없습니다."));
 
         //isDeleted true(삭제됨)으로 업데이트, deleted_at 업데이트
-        userOptional.get().updateDeleted();
+        user.updateDeleted();
 
         //사용자에게는 회원탈퇴 성공 메세지 반환
         return ResponseEntity.ok("회원탈퇴 성공");

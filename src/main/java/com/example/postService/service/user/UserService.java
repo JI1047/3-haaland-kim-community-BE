@@ -10,13 +10,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 public interface UserService {
     //회원가입을 처리하는 service
     @Transactional
     CreateUserResponseDto signUp(CreateUserRequestDto dto);
 
     //로그인 처리 Service 로직
-    ResponseEntity<String> login(LoginRequestDto dto, HttpServletRequest request);
+    ResponseEntity<Map<String, Object>> login(LoginRequestDto dto, HttpServletRequest request);
 
     //회원 정보 조회 Service 로직
     ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest);

@@ -5,13 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestController
+@RestControllerAdvice(basePackages = "com.example.postService") // ✅ 전역 적용
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalAccessException.class)
+    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-            IllegalAccessException e, HttpServletRequest httpServletRequest) {
+            IllegalArgumentException e, HttpServletRequest httpServletRequest) {
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .success(false)

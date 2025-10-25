@@ -67,19 +67,18 @@ public class PostServiceImpl implements PostService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요!");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().body("해당 사용자 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요!");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-
-        UserProfile userProfile = userProfileOptional.get();
 
         //PostView 객체 생성
         PostView postView = PostView.builder().build();
@@ -111,13 +110,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Override
     public ResponseEntity<String> updatePost(UpdatePostRequestDto dto, Long postId) {
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
-
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당하는 게시물이 존재하지 않습니다.");
-        }
-
-        Post post = postOptional.get();
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
         PostContent postContent = post.getPostContent();
 
@@ -138,11 +132,8 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Override
     public ResponseEntity<String> deletePost(Long postId) {
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당하는 게시물이 존재하지 않습니다.");
-        }
-        Post post = postOptional.get();
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
         postJpaRepository.delete(post);
 
@@ -204,13 +195,8 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public ResponseEntity<GetPostResponseDto> getPost(Long postId) {
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
-
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Post post = postOptional.get();
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
         PostContent postContent = post.getPostContent();
 
@@ -247,22 +233,21 @@ public class PostServiceImpl implements PostService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
+
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().body("해당 사용자 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 게시물을 찾을 수 없습니다.");
-        }
-        Post post = postOptional.get();
-        UserProfile userProfile = userProfileOptional.get();
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
+
 
         boolean alreadyLiked = postLikeJpaRepository.existsByPostAndUserProfile(post, userProfile);
 

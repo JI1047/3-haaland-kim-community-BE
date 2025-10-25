@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class UserController {
 
     //로그인 controller
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequestDto dto, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDto dto, HttpServletRequest httpServletRequest) {
         //로그인에 필요한 email,password를 dto를 통해 입력받고
         //request 세션 생성을 위해 필요한 HttpServletRequest 객체
 
@@ -46,7 +48,7 @@ public class UserController {
 
     }
 
-//   회원정보 수정(PUT)/nickname,profileImage 수정
+    //   회원정보 수정(PUT)/nickname,profileImage 수정
     @PutMapping("/profile")
     public ResponseEntity<String> updateProfile(@RequestBody UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest) {
 
@@ -58,7 +60,6 @@ public class UserController {
     public ResponseEntity<String> updatePassword(@RequestBody UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest) {
         return userService.updatePassword(dto, httpServletRequest);
     }
-
 
 
     //회원정보 수정 controller(soft-delete)

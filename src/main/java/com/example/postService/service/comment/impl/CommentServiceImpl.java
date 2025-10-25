@@ -77,26 +77,21 @@ public class CommentServiceImpl implements CommentService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().body("해당 사용자 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
 
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 게시물을 찾을 수 없습니다.");
-        }
-
-        UserProfile userProfile = userProfileOptional.get();
-
-        Post post = postOptional.get();
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
 
         Comment comment = commentMapper.toComment(dto, post, userProfile);
@@ -132,33 +127,27 @@ public class CommentServiceImpl implements CommentService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().body("해당 사용자 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
 
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 게시물을 찾을 수 없습니다.");
-        }
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
-        Optional<Comment> commentOptional = commentJpaRepository.findById(commentId);
+        Comment comment = commentJpaRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
-        if (commentOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 댓글을 찾을 수 없습니다.");
-        }
-        UserProfile userProfile = userProfileOptional.get();
-        Comment comment = commentOptional.get();
-
-        if(!comment.getUserProfile().getUserProfileId().equals(userProfile.getUserProfileId())) {
-            return ResponseEntity.badRequest().body("작성하신 사용자와 일치하지 않는 사용자입니다.");
+        if(!comment.getUserProfile().equals(userProfile)) {
+            throw new IllegalArgumentException("해당 댓글을 작성한 작성자만 수정할 수 있습니다!");
         }
         comment.updateText(dto.getText());
 
@@ -187,39 +176,29 @@ public class CommentServiceImpl implements CommentService {
         HttpSession httpSession = httpServletRequest.getSession(false);
 
         if (httpSession == null) {
-            return ResponseEntity.badRequest().body("로그인이 필요합니다.");
+            throw new IllegalArgumentException("접근 할 수 없습니다. 로그인 해주세요!");
         }
 
         UserSession userSession = (UserSession) httpSession.getAttribute("user");
 
         if (userSession == null || userSession.getUserProfileId() == null) {
-            return ResponseEntity.badRequest().body("세션 정보가 유효하지 않습니다.");
+            throw new IllegalArgumentException("접근 할 수 없습니다. 로그인 해주세요!");
         }
 
-        Optional<UserProfile> userProfileOptional = userProfileJpaRepository.findById(userSession.getUserProfileId());
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
-        if (userProfileOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 사용자 정보를 찾을 수 없습니다.");
-        }
 
-        Optional<Post> postOptional = postJpaRepository.findById(postId);
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
-        if (postOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 게시물을 찾을 수 없습니다.");
-        }
+        Comment comment= commentJpaRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
-        Post post = postOptional.get();
 
-        Optional<Comment> commentOptional = commentJpaRepository.findById(commentId);
 
-        if (commentOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("해당 댓글을 찾을 수 없습니다.");
-        }
-        UserProfile userProfile = userProfileOptional.get();
-        Comment comment = commentOptional.get();
-
-        if(!comment.getUserProfile().getUserProfileId().equals(userProfile.getUserProfileId())) {
-            return ResponseEntity.badRequest().body("작성하신 사용자와 일치하지 않는 사용자입니다.");
+        if(!comment.getUserProfile().equals(userProfile)) {
+            throw new IllegalArgumentException("해당 댓글 작성자만 수정할 수 있습니다.");
         }
 
         commentJpaRepository.delete(comment);
