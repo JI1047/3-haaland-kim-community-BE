@@ -1,0 +1,50 @@
+body {
+  font-family: 'Pretendard', sans-serif;
+  background-color: #f3f8ff;
+  color: #333;
+}
+
+.container {
+  width: 70%;
+  margin: 50px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 40px;
+}
+
+h1 {
+  color: #2463eb;
+  margin-bottom: 10px;
+}
+
+pre {
+  background: #f7f9fb;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+button {
+  display: block;
+  margin-top: 30px;
+  background-color: #2463eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #1748b5;
+}

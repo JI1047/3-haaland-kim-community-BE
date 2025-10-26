@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>이용약관 및 개인정보 동의</title>
+    <link rel="stylesheet" href="/css/termsView.css">
+    <!-- ✅ defer 필수 (DOM 로드 후 실행) -->
+    <script defer th:src="@{/js/termsView.js}"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>커뮤니티 이용약관</h1>
+
+    <form id="termsForm" onsubmit="return false;">
+        <div class="terms-box">
+      <pre>
+제1조(목적)
+이 약관은 커뮤니티 이름이 제공하는 제반 서비스의 이용과 관련하여...
+
+제3조(회원의 의무)
+회원은 다음 각 호의 행위를 하여서는 안 됩니다.
+1. 다른 회원의 개인정보를 도용하거나 부정하게 사용하는 행위
+2. 음란, 폭력, 차별적 내용을 담은 게시물, 댓글 등을 게시하는 행위
+3. 커뮤니티의 건전한 운영을 방해하거나 다른 회원에게 피해를 주는 행위
+      </pre>
+
+            <label for="agreeTerms">
+                <input type="checkbox" id="agreeTerms">
+                이용약관에 동의합니다.
+            </label>
+        </div>
+
+        <h1>개인정보 수집 및 이용 동의</h1>
+        <div class="privacy-box">
+      <pre>
+[커뮤니티 이름]은 개인정보보호법에 따라 회원가입 및 서비스 이용을 위해
+아래와 같이 개인정보를 수집 및 이용합니다.
+
+- 필수 항목: 이름, 연락처(전화번호 또는 이메일)
+- 선택 항목: 닉네임, 생년월일, 성별, 주소 등
+- 보유 기간: 회원 탈퇴 시까지 보유 및 이용
+      </pre>
+
+            <label for="agreePrivacy">
+                <input type="checkbox" id="agreePrivacy">
+                개인정보 수집 및 이용에 동의합니다.
+            </label>
+        </div>
+        <button type="button" id="nextBtn">다음 단계로</button>
+    </form>
+</div>
+
+</body>
+</html>

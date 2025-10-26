@@ -1,6 +1,8 @@
 package com.example.postService.dto.user.request;
 
+import com.example.postService.dto.user.terms.TermsAgreementDto;
 import com.example.postService.entity.user.UserProfile;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -35,6 +37,9 @@ public class CreateUserRequestDto {
     private String confirmPassword;//입력받은 비밀번호 확인(DB에는 저장안됨)
 
     private String profileImage;//입력받은 s3.Url
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private TermsAgreementDto termsAgreement;//약관 request Dto
 }
 /**
  * 회원가입 요청 dto

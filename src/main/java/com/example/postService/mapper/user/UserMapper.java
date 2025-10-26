@@ -4,8 +4,10 @@ import com.example.postService.dto.user.request.CreateUserRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
 import com.example.postService.dto.user.session.UserSession;
+import com.example.postService.dto.user.terms.TermsAgreementDto;
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
+import com.example.postService.entity.user.UserTerms;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -34,5 +36,8 @@ public interface UserMapper {
     @Mapping(source = "nickname", target = "nickname")
     @Mapping(source = "profileImage",target = "profileImage")
     UserSession userProfileToSessionUser(UserProfile userProfile);
+
+    @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
+    UserTerms TermsAgreementDtoToUserTerms(TermsAgreementDto dto,User user);
 
 }

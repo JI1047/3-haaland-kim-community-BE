@@ -7,11 +7,14 @@ import com.example.postService.dto.user.request.UpdateUserProfileRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
 import com.example.postService.dto.user.session.UserSession;
+import com.example.postService.dto.user.terms.TermsAgreementDto;
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
+import com.example.postService.entity.user.UserTerms;
 import com.example.postService.mapper.user.UserMapper;
 import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
+import com.example.postService.repository.user.UserTermsJpaRepository;
 import com.example.postService.service.user.UserService;
 import com.example.postService.util.PasswordEncoderUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserJpaRepository userJpaRepository;
     private final UserProfileJpaRepository userProfileJpaRepository;
+    private final UserTermsJpaRepository userTermsJpaRepository;
 
     /**
      * 회원가입 로직
@@ -73,8 +77,14 @@ public class UserServiceImpl implements UserService {
         //user 엔터티 생성
         User user = userMapper.createUserRequestDto(createUserRequestDto, userProfile);
 
+
         //DB 저장
         userJpaRepository.save(user);
+
+        //회원 약관 정보 생성 및 저장
+        UserTerms userTerms = userMapper.TermsAgreementDtoToUserTerms(dto.getTermsAgreement(), user);
+
+        userTermsJpaRepository.save(userTerms);
 
         return userMapper.userToCreateUserResponseDto(user);
 
@@ -177,7 +187,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
         }
 
-//        PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
+
         UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
