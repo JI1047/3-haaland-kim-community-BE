@@ -16,6 +16,7 @@ import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.repository.user.UserTermsJpaRepository;
 import com.example.postService.service.user.UserService;
+import com.example.postService.session.SessionManager;
 import com.example.postService.util.PasswordEncoderUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -35,7 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserJpaRepository userJpaRepository;
     private final UserProfileJpaRepository userProfileJpaRepository;
     private final UserTermsJpaRepository userTermsJpaRepository;
-
+    private final SessionManager sessionManager;
     /**
      * 회원가입 로직
      * 1. 요청 dto를 통해 이메일 중복 체크를 진행
@@ -120,9 +121,7 @@ public class UserServiceImpl implements UserService {
         UserSession userSession = userMapper.userProfileToSessionUser(userProfile);
 
         //세션 생성
-        HttpSession httpSession = request.getSession();
-        httpSession.setAttribute("user", userSession);
-        httpSession.setMaxInactiveInterval(60 * 60);//세션 만료 시간 설정(30분)
+        sessionManager.createSession(request, userSession);
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
@@ -138,14 +137,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        //세션 자체가 없을 경우
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         //userSession이 없거나 userSession에 해당하는 User정보가 없는 경우
         if (userSession == null || userSession.getUserProfileId() == null) {
@@ -175,13 +169,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
@@ -212,13 +202,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");

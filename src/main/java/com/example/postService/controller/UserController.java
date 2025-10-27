@@ -7,6 +7,7 @@ import com.example.postService.dto.user.request.CreateUserRequestDto;
 import com.example.postService.dto.user.request.UpdateUserProfileRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
+import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final SessionManager sessionManager;
 
     // 회원가입 controller
     @PostMapping("/sign-up")
@@ -78,16 +80,8 @@ public class UserController {
     //로그아웃 controller
     @PutMapping("/log-out")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate(); // 서버 세션 무효화
-        }
 
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        sessionManager.expireSession(request, response);
         //클라이언트에 저장된 JSESSIONID쿠키 삭제
         return ResponseEntity.ok("로그아웃 성공");
     }

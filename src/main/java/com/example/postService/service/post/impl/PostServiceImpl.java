@@ -20,6 +20,7 @@ import com.example.postService.repository.post.PostLikeJpaRepository;
 import com.example.postService.repository.post.PostViewJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.post.PostService;
+import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -39,11 +40,10 @@ import java.util.Optional;
 public class PostServiceImpl implements PostService {
 
     private final PostMapper postMapper;
-    private final CommentMapper commentMapper;
     private final PostJpaRepository postJpaRepository;
-    private final PostViewJpaRepository postViewJpaRepository;
     private final UserProfileJpaRepository userProfileJpaRepository;
     private final PostLikeJpaRepository postLikeJpaRepository;
+    private final SessionManager sessionManager;
 
 
     /**
@@ -64,13 +64,9 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public ResponseEntity<String> createPost(CreatePostRequestDto createPostRequestDto, HttpServletRequest httpServletRequest) {
 
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요!");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요!");
@@ -230,14 +226,10 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Override
     public ResponseEntity<String> updatePostLike(Long postId, HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
 
-        }
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
         }

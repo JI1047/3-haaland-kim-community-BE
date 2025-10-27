@@ -1,9 +1,6 @@
-package com.example.postService.config;
+package com.example.postService.session;
 
-import com.example.postService.interceptor.LoginCheckInterceptor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -13,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final LoginCheckInterceptor loginCheckInterceptor;//로그인 체크 인터셉터
+    private final SessionInterceptor sessionInterceptor;//로그인 체크 인터셉터
 
     /**
      * InterceptorRegistry을 통해 전역 인터셉터 등록
@@ -22,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(loginCheckInterceptor)
+        registry.addInterceptor(sessionInterceptor)
                 .addPathPatterns("/api/**")//모든 api가 세션 필요로 설정
                 .excludePathPatterns("/api/users/login",
                         "/api/users",
@@ -30,8 +27,10 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/users/profile",
                         "/api/users/password",
                         "/api/posts/list",
+                        "/api/posts/create",
                         "/api/posts/{postId}",
                         "/api/posts/{postId}/update",
+                        "/api/{postId}/comments",
                         "/api/terms"
                 );//로그인,회원가입,게시물 목록 조회, 게시물 상세 조회는 세션 없이 진행되도록 예외 처리
     }

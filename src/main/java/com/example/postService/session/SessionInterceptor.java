@@ -1,4 +1,4 @@
-package com.example.postService.interceptor;
+package com.example.postService.session;
 
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +9,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 //로그인 된 사용자 인지 세션을 통해 체크하는 인터셉터
 @Component
-public class LoginCheckInterceptor implements HandlerInterceptor {
+public class SessionInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)

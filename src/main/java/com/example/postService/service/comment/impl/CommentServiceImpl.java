@@ -13,6 +13,7 @@ import com.example.postService.repository.comment.CommentJpaRepository;
 import com.example.postService.repository.post.PostJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.comment.CommentService;
+import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
@@ -37,6 +38,8 @@ public class CommentServiceImpl implements CommentService {
     private final PostJpaRepository postJpaRepository;
 
     private final UserProfileJpaRepository userProfileJpaRepository;
+
+    private final SessionManager sessionManager;
 
     @Override
     public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
@@ -74,13 +77,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public ResponseEntity<String> createComment(Long postId, CreateCommentDto dto, HttpServletRequest httpServletRequest) {
 
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
@@ -124,13 +123,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public ResponseEntity<String> updateComment(Long postId, Long commentId, UpdateCommentDto dto, HttpServletRequest httpServletRequest) {
 
-        HttpSession httpSession = httpServletRequest.getSession(false);
-
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
-        }
-
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
@@ -173,13 +166,9 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public ResponseEntity<String> deleteComment(Long postId, Long commentId, HttpServletRequest httpServletRequest) {
-        HttpSession httpSession = httpServletRequest.getSession(false);
 
-        if (httpSession == null) {
-            throw new IllegalArgumentException("접근 할 수 없습니다. 로그인 해주세요!");
-        }
 
-        UserSession userSession = (UserSession) httpSession.getAttribute("user");
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
         if (userSession == null || userSession.getUserProfileId() == null) {
             throw new IllegalArgumentException("접근 할 수 없습니다. 로그인 해주세요!");
