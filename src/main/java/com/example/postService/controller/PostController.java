@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -41,10 +42,15 @@ public class PostController {
         return postService.createPost(dto, httpServletRequest);
     }
 
+    @GetMapping("/{postId}/check-writer")
+    public ResponseEntity<Map<String, Boolean>> checkPost(@PathVariable Long postId, HttpServletRequest httpServletRequest) {
+        return postService.checkWriter(postId, httpServletRequest);
+    }
     //게시물 update controller
     @PutMapping("/{postId}/update")
-    public ResponseEntity<String> updatePost(@RequestBody UpdatePostRequestDto dto, @PathVariable Long postId) {
-        return postService.updatePost(dto, postId);
+    public ResponseEntity<String> updatePost(@RequestBody UpdatePostRequestDto dto, @PathVariable Long postId, HttpServletRequest httpServletRequest) {
+
+        return postService.updatePost(dto, postId, httpServletRequest);
     }
 
     //게시물 삭제 controller

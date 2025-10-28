@@ -1,38 +1,33 @@
 package com.example.postService.service.post.impl;
 
-import com.example.postService.dto.comment.response.GetCommentResponseDto;
 import com.example.postService.dto.post.response.GetPostListResponseDto;
 import com.example.postService.dto.post.response.GetPostListResponseWrapperDto;
 import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
 import com.example.postService.dto.user.session.UserSession;
-import com.example.postService.entity.comment.Comment;
 import com.example.postService.entity.post.Post;
 import com.example.postService.entity.post.PostContent;
 import com.example.postService.entity.post.PostLike;
 import com.example.postService.entity.post.PostView;
 import com.example.postService.entity.user.UserProfile;
-import com.example.postService.mapper.comment.CommentMapper;
 import com.example.postService.mapper.post.PostMapper;
 import com.example.postService.repository.post.PostJpaRepository;
 import com.example.postService.repository.post.PostLikeJpaRepository;
-import com.example.postService.repository.post.PostViewJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.post.PostService;
 import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -105,7 +100,7 @@ public class PostServiceImpl implements PostService {
      */
     @Transactional
     @Override
-    public ResponseEntity<String> updatePost(UpdatePostRequestDto dto, Long postId) {
+    public ResponseEntity<String> updatePost(UpdatePostRequestDto dto, Long postId, HttpServletRequest httpServletRequest) {
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
@@ -255,5 +250,23 @@ public class PostServiceImpl implements PostService {
             post.getPostView().likeCountIncrease();
             return ResponseEntity.ok("좋아요 생성");
         }
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, HttpServletRequest httpServletRequest) {
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
+
+        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        boolean isOwner = userProfile.getUserProfileId()
+                .equals(post.getUserProfile().getUserProfileId());
+        if(!isOwner) {
+            throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");
+        }
+
+        return ResponseEntity.ok(Map.of("match", true));
     }
 }
