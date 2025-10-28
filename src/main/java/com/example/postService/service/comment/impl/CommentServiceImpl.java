@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -195,5 +196,22 @@ public class CommentServiceImpl implements CommentService {
         post.getPostView().commentCountDecrease();
 
         return ResponseEntity.ok("댓글 삭제 성공");
+    }
+
+    @Override
+    public ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, Long commentId, HttpServletRequest httpServletRequest) {
+        Post post = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
+        Comment comment= commentJpaRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
+        UserSession userSession = sessionManager.getSession(httpServletRequest);
+
+        boolean isOwner = userSession.getUserProfileId()
+                .equals(comment.getUserProfile().getUserProfileId());
+        if (!isOwner) {
+            throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");
+        }
+        return ResponseEntity.ok(Map.of("match", true));
+
     }
 }

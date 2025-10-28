@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/{postId}/comments")
 @RequiredArgsConstructor
@@ -25,6 +27,10 @@ public class CommentController {
     @PostMapping()
     public ResponseEntity<String> createComment(@PathVariable Long postId, @RequestBody CreateCommentDto dto, HttpServletRequest httpServletRequest) {
         return commentService.createComment(postId, dto, httpServletRequest);
+    }
+    @GetMapping("/{commentId}/check-writer")
+    public ResponseEntity<Map<String, Boolean>> checkPost(@PathVariable Long postId, @PathVariable Long commentId,HttpServletRequest httpServletRequest) {
+        return commentService.checkWriter(postId,commentId,httpServletRequest);
     }
 
     //댓글 수정 controller

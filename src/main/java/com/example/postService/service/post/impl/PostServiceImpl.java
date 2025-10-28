@@ -258,10 +258,8 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
         UserSession userSession = sessionManager.getSession(httpServletRequest);
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
-        boolean isOwner = userProfile.getUserProfileId()
+        boolean isOwner = userSession.getUserProfileId()
                 .equals(post.getUserProfile().getUserProfileId());
         if(!isOwner) {
             throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");

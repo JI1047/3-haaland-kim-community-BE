@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 public interface CommentService {
     ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size);
 
@@ -20,4 +22,6 @@ public interface CommentService {
 
     @Transactional
     ResponseEntity<String> deleteComment(Long postId, Long commentId, HttpServletRequest httpServletRequest);
+
+    ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, Long commentId, HttpServletRequest httpServletRequest);
 }
