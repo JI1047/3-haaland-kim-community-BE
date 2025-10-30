@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.time.Instant;
 
 @Entity
-@Table(name = "entity")
+@Table(name = "refresh_token")
 @EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

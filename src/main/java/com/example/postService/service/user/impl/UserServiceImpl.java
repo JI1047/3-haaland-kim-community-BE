@@ -6,7 +6,6 @@ import com.example.postService.dto.user.request.UpdateUserPasswordRequestDto;
 import com.example.postService.dto.user.request.UpdateUserProfileRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
-import com.example.postService.dto.user.session.UserSession;
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
 import com.example.postService.entity.user.UserTerms;
@@ -121,7 +120,7 @@ public class UserServiceImpl implements UserService {
         }
 
 
-        refreshTokenRepository.deleteByUserId(user.getUserId());
+        refreshTokenRepository.deleteByUser_UserId(user.getUserId());
 
         var tokenResponse = tokenService.generateAndSaveTokens(user);
 

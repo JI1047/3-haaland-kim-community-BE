@@ -61,7 +61,7 @@ public class TokenService {
         String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
         RefreshToken refreshEntity = RefreshToken.builder()
-                .id(user.getUserId())
+                .user(user)
                 .token(refreshToken)
                 .expiresAt(Instant.now().plusSeconds(REFRESH_TOKEN_EXPIRATION))
                 .revoked(false)
