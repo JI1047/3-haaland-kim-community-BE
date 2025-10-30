@@ -33,7 +33,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      * - startsWith() 기반 매칭이므로 "/login/success" 같은 경로도 패스됨 → 정확한 경로 패턴 관리 필요
      */
     private static final String[] EXCLUDED_PATHS = {
-            "/login", "/refresh", "/error"
+            "/api/users/login",
+            "/api/users/sign-up",
+            "/api/auth/refresh",
+            "/api/public",
+            "/error"
     };
 
     /**

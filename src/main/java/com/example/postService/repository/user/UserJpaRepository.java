@@ -36,5 +36,8 @@ public interface UserJpaRepository extends JpaRepository<User,Long>, UserCustomR
 
     Optional<User> findByUserProfile(UserProfile userProfile);
 
+    Optional<UserProfile> findByUser(User user);
+    Optional<User> findByUserId(Long userId);
+
 
 }

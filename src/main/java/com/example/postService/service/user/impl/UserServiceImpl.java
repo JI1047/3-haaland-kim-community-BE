@@ -10,13 +10,17 @@ import com.example.postService.dto.user.session.UserSession;
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
 import com.example.postService.entity.user.UserTerms;
+import com.example.postService.jwt.CookieUtil;
+import com.example.postService.jwt.TokenService;
 import com.example.postService.mapper.user.UserMapper;
+import com.example.postService.repository.token.RefreshTokenRepository;
 import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.repository.user.UserTermsJpaRepository;
 import com.example.postService.service.user.UserService;
 import com.example.postService.util.PasswordEncoderUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +37,10 @@ public class UserServiceImpl implements UserService {
     private final UserJpaRepository userJpaRepository;
     private final UserProfileJpaRepository userProfileJpaRepository;
     private final UserTermsJpaRepository userTermsJpaRepository;
-    private final SessionManager sessionManager;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
+    private final CookieUtil cookieUtil;
+
     /**
      * 회원가입 로직
      * 1. 요청 dto를 통해 이메일 중복 체크를 진행
@@ -100,7 +107,8 @@ public class UserServiceImpl implements UserService {
      *
      */
     @Override
-    public ResponseEntity<Map<String, Object>> login(LoginRequestDto dto, HttpServletRequest request) {
+    @Transactional
+    public ResponseEntity<Map<String,Object>> login(LoginRequestDto dto, HttpServletResponse response) {
 
         //입력받은 email을 통해 사용자 존재 여부를 DB조회를 통해 확인
         User user= userJpaRepository.findByEmail(dto.getEmail())
@@ -112,20 +120,20 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("비밀번호가 일치 하지 않습니다.");
         }
 
-        UserProfile userProfile = user.getUserProfile();
 
-        //세션에 저장할 정보 dto 변환
-        UserSession userSession = userMapper.userProfileToSessionUser(userProfile);
+        refreshTokenRepository.deleteByUserId(user.getUserId());
 
-        //세션 생성
-        sessionManager.createSession(request, userSession);
+        var tokenResponse = tokenService.generateAndSaveTokens(user);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "로그인 성공!");
-        response.put("status", 200);
+        cookieUtil.addTokenCookies(response,tokenResponse);
 
-        return ResponseEntity.ok(response);
+        Map<String,Object> success = new HashMap<>();
+        success.put("success", true);
+        success.put("message", "로그인 성공");
+        success.put("status", 200);
+        success.put("accessToken", tokenResponse.getAccessToken());
+
+        return ResponseEntity.ok(success);
     }
 
     /**회원 정보 조회 Service 로직
@@ -136,18 +144,14 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<GetUserResponseDto> get(HttpServletRequest httpServletRequest) {
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
-
-        //userSession이 없거나 userSession에 해당하는 User정보가 없는 경우
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
         }
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
 
-        User user = userJpaRepository.findByUserProfile(userProfile)
+        User user = userJpaRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
 
@@ -168,14 +172,16 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<String> updateProfile(UpdateUserProfileRequestDto dto, HttpServletRequest httpServletRequest) {
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
-
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
         }
 
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile userProfile = userJpaRepository.findByUser(user)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
 
 
@@ -201,25 +207,19 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<String> updatePassword(UpdateUserPasswordRequestDto dto, HttpServletRequest httpServletRequest) {
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
         }
 
-        //PathVariable로 부터 온 userId를 통해 DB에서 UserProfile조회
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
         if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.!");
         }//입력된 비밀번호/비밀번호 확인이 일치한지 확인 예외 처리
-
-        //PathVariable로 부터 온 userId를 통해 DB에서 User조회
-        User user = userJpaRepository.findByUserProfile(userProfile)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
-
-
 
         //BCrypt 방식으로 패스워드 암호화 진행
         String encodedPassword = PasswordEncoderUtil.encode(dto.getNewPassword());
@@ -242,12 +242,21 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public ResponseEntity<String> softDelete(Long userId) {
+    public ResponseEntity<String> softDelete(HttpServletRequest httpServletRequest) {
 
 
-        //PathVariable로 부터 온 userId를 통해 DB에서 User조회
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
+        }
+
+
         User user = userJpaRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+
+
+
 
         //isDeleted true(삭제됨)으로 업데이트, deleted_at 업데이트
         user.updateDeleted();
