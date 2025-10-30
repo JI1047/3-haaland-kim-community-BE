@@ -31,7 +31,7 @@ public class RefreshToken {
      * RefreshToken은 인증 상태 유지용 데이터이기 때문에
      * User엔터티와 연결
      */
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
