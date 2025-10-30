@@ -1,5 +1,6 @@
 package com.example.postService.jwt;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -139,7 +140,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             var jws = jwtProvider.parse(token);
             Claims body = jws.getBody();
             request.setAttribute("userId", Long.valueOf(body.getSubject()));
-            request.setAttribute("role", body.get("role"));
             return true;
         } catch (Exception exception) {
             return false;
