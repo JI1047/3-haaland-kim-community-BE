@@ -71,5 +71,25 @@ public class TokenService {
 
         return new TokenResponse(accessToken, refreshToken);
     }
+    @Transactional(readOnly = true)
+    public boolean validateAccessToken(String token) {
+        try {
+            jwtProvider.parse(token); // Signature, Expiration 자동 검증
+            return true;
+        } catch (Exception e) {
+            return false; // 변조, 만료 등 예외 발생 시 false 반환
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Long extractUserId(String token) {
+        try {
+            var jws = jwtProvider.parse(token);
+            return Long.valueOf(jws.getBody().getSubject());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
 }

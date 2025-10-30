@@ -39,11 +39,9 @@ public class PostServiceImpl implements PostService {
 
     private final PostMapper postMapper;
     private final PostJpaRepository postJpaRepository;
-    private final UserProfileJpaRepository userProfileJpaRepository;
     private final PostLikeJpaRepository postLikeJpaRepository;
     private final UserJpaRepository userJpaRepository;
-    private final TokenService tokenService;
-    private final CookieUtil cookieUtil;
+
 
 
     /**

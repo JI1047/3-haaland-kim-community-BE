@@ -31,6 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      * 인증 제외 경로 설정
      * - 로그인, 토큰 갱신, 에러 페이지 등은 토큰 검증이 불필요
      * - startsWith() 기반 매칭이므로 "/login/success" 같은 경로도 패스됨 → 정확한 경로 패턴 관리 필요
+     * Spring 서버에 도달한 실제 경로를 의미
      */
     private static final String[] EXCLUDED_PATHS = {
             "/api/users/login",
