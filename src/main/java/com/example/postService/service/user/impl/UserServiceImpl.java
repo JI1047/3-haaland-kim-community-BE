@@ -181,8 +181,7 @@ public class UserServiceImpl implements UserService {
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userJpaRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
 
 
 

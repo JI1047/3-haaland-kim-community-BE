@@ -75,8 +75,8 @@ public class PostServiceImpl implements PostService {
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userJpaRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
+
 
 
 
@@ -241,8 +241,8 @@ public class PostServiceImpl implements PostService {
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userJpaRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
+
 
 
         Post post = postJpaRepository.findById(postId)
@@ -275,8 +275,8 @@ public class PostServiceImpl implements PostService {
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userJpaRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
+
 
         boolean isOwner = userProfile.getUserProfileId()
                 .equals(post.getUserProfile().getUserProfileId());
