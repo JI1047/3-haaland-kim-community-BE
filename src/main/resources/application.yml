@@ -17,11 +17,12 @@ spring:
         show_sql: true
         use_sql_comments: true
 
+  session:
+    store-type: none   # ✅ 세션 저장소 완전 비활성화
+
 server:
   servlet:
     session:
-      cookie:
-        name: JSESSIONID
-        path: /
-        same-site: lax
-        secure: false
+      timeout: 0          # ✅ 세션 즉시 만료
+      persistent: false   # ✅ 세션 저장하지 않음
+      tracking-modes: cookie  # ✅ URL 세션 트래킹도 비활성화

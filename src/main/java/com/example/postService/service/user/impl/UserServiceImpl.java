@@ -144,17 +144,11 @@ public class UserServiceImpl implements UserService {
 
 
         Long userId = (Long) httpServletRequest.getAttribute("userId");
-        if (userId == null) {
-            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
-        }
-
-
 
         User user = userJpaRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-
-
-
+        System.out.println("---------------------------------");
+        System.out.println(user.getEmail());
         //Mapper을 통해 응답 dto 변환 후 반환
         return ResponseEntity.ok(userMapper.userToUGetUserResponseDto(user));
     }

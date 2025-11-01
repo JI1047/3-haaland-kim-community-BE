@@ -36,9 +36,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final String[] EXCLUDED_PATHS = {
             "/api/users/login",
             "/api/users/sign-up",
-            "/api/auth/refresh",
-            "/api/public",
-            "/error"
+            "/api/jwt/validate"
+
     };
 
     /**

@@ -26,7 +26,7 @@ import java.util.UUID;
 public class JwtProvider {
 
     /**
-     * 🔐 HMAC-SHA256 알고리즘 기반 서명키 초기화
+     *  HMAC-SHA256 알고리즘 기반 서명키 초기화
      * - Base64로 인코딩된 문자열을 디코딩해 Key 객체로 변환
      * - 최소 256bit(32자 이상) 키를 사용해야 HMAC-SHA256이 정상 동작함
      */

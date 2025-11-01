@@ -36,10 +36,8 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final CommentJpaRepository commentJpaRepository;
     private final PostJpaRepository postJpaRepository;
-    private final UserProfileJpaRepository userProfileJpaRepository;
     private final UserJpaRepository userJpaRepository;
-    private final TokenService tokenService;
-    private final CookieUtil cookieUtil;
+
 
     @Override
     public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
@@ -178,7 +176,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
         if(!comment.getUserProfile().equals(userProfile)) {
-            throw new IllegalArgumentException("해당 댓글 작성자만 수정할 수 있습니다.");
+            throw new IllegalArgumentException("해당 댓글 작성자만 삭제할 수 있습니다.");
         }
 
         commentJpaRepository.delete(comment);
@@ -188,25 +186,5 @@ public class CommentServiceImpl implements CommentService {
         return ResponseEntity.ok("댓글 삭제 성공");
     }
 
-    @Override
-    public ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, Long commentId, HttpServletRequest httpServletRequest) {
-        Post post = postJpaRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
-        Comment comment= commentJpaRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
-        Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        User user = userJpaRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-
-        UserProfile userProfile = user.getUserProfile();
-
-        boolean isOwner = userProfile.getUserProfileId()
-                .equals(comment.getUserProfile().getUserProfileId());
-        if (!isOwner) {
-            throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");
-        }
-        return ResponseEntity.ok(Map.of("match", true));
-
-    }
 }
