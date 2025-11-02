@@ -5,6 +5,7 @@ import com.example.postService.entity.token.RefreshToken;
 import com.example.postService.entity.user.User;
 import com.example.postService.repository.token.RefreshTokenRepository;
 import com.example.postService.repository.user.UserJpaRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -76,7 +77,11 @@ public class TokenService {
         try {
             jwtProvider.parse(token); // Signature, Expiration 자동 검증
             return true;
-        } catch (Exception e) {
+        }catch (ExpiredJwtException e) {
+            System.out.println("AccessToken 만료됨");
+            return false;
+        }
+        catch (Exception e) {
             return false; // 변조, 만료 등 예외 발생 시 false 반환
         }
     }

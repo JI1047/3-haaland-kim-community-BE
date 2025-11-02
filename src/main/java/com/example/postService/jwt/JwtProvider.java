@@ -45,7 +45,7 @@ public class JwtProvider {
      * @return 서명된 Access Token (JWT 문자열)
      */
     public String createAccessToken(Long userId) {
-        long accessTtlSec = 15 * 60;
+        long accessTtlSec = 60;
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))// JWT subject에 userId 저장
                 .setIssuedAt(new Date()) //토큰 발급 시간

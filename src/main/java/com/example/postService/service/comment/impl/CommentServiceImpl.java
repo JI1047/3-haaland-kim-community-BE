@@ -176,7 +176,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
         if(!comment.getUserProfile().equals(userProfile)) {
-            throw new IllegalArgumentException("해당 댓글 작성자만 삭제할 수 있습니다.");
+            throw new IllegalArgumentException("해당 댓글 작성자만 수정할 수 있습니다.");
         }
 
         commentJpaRepository.delete(comment);

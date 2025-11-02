@@ -33,8 +33,7 @@ public class UserController {
     //로그인 controller
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDto dto, HttpServletResponse httpServletResponse) {
-        //로그인에 필요한 email,password를 dto를 통해 입력받고
-        //request 세션 생성을 위해 필요한 HttpServletRequest 객체
+
 
         //userService.login로직을 통해 로그인 및 세션 설정 수행
         return userService.login(dto, httpServletResponse);
