@@ -2,6 +2,7 @@ package com.example.postService.controller;
 
 import com.example.postService.dto.user.request.UpdateUserPasswordRequestDto;
 import com.example.postService.jwt.CookieUtil;
+import com.example.postService.repository.token.RefreshTokenRepository;
 import com.example.postService.service.user.UserService;
 import com.example.postService.dto.login.request.LoginRequestDto;
 import com.example.postService.dto.user.request.CreateUserRequestDto;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
     private final CookieUtil cookieUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // 회원가입 controller
     @PostMapping("/sign-up")
@@ -76,8 +78,14 @@ public class UserController {
      */
     //로그아웃 controller
     @PutMapping("/log-out")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> logout(HttpServletRequest httpServletRequest, HttpServletResponse response) {
 
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+
+        //DB에 저장된 UserId에 대한 RefreshToken 삭제
+        refreshTokenRepository.deleteByUser_UserId(userId);
+
+        //cookieUtil clearCookie 메서드를 통해서 클라이언트에 잇는 토큰 삭제
         cookieUtil.clearCookies(response, "accessToken", "refreshToken");
         return ResponseEntity.ok("로그아웃 성공");
     }

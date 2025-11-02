@@ -29,7 +29,6 @@ public class JwtController {
      * FE에 header.js 공통로직이(모든 페이지에 적용) 있습니다
      * jwt를 통해서 로그인 유무를 판단하고 그에 따른 버튼 노출에 차이를 두기 위해
      * header.js에서 /api/jwt/validate API를 호출하여 jwt 검증을 진행합니다.
-     * 여기서 추가로 accessToken의 만료 시점을 알기 위해서
      * RefreshToken을 요청을 같이 받아 검증을 진행합니다.
      * ----------------------------------------------------------------
      * case 1. accessToken이 없는데 refreshToken이 있는경우
@@ -57,6 +56,7 @@ public class JwtController {
             //case1. accessToken 존재 X, refreshToken 존재
             if(refreshToken != null){
 
+                //tokenService를 통해 AccessToken 재발급
                 var tokenResponse = tokenService.refreshTokens(refreshToken, httpServletResponse);
 
                 cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
@@ -77,7 +77,9 @@ public class JwtController {
             ));
         }
 
+        //AccessToken이 만료됐는지 확인
         boolean valid = tokenService.validateAccessToken(accessToken);
+
         if (!valid) {
             //case3. accessToken 만료, refreshToken 존재
             if(refreshToken != null){
@@ -85,11 +87,6 @@ public class JwtController {
                 var tokenResponse = tokenService.refreshTokens(refreshToken, httpServletResponse);
 
                 cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
-
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
 
                 Map<String,Object> success = new HashMap<>();
                 success.put("login", true);
