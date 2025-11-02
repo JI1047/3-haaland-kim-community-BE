@@ -38,18 +38,28 @@ public class TokenService {
      */
     @Transactional
     public TokenResponse refreshTokens(String refreshToken, HttpServletResponse response) {
+
+        //RefreshToken 추출
         var parsedRefreshToken = jwtProvider.parse(refreshToken);
 
+        //RefreshToken 만료 여부 검증
         RefreshToken entity = refreshTokenRepository.findByTokenAndRevokedFalse(refreshToken).orElse(null);
+
+        //RefreshToken이 없거나 만료된경우
         if (entity == null || entity.getExpiresAt().isBefore(Instant.now())) {
             return null;
         }
 
+        //RefreshToken을 통해 User 조회 및 검증
         Long userId = Long.valueOf(parsedRefreshToken.getBody().getSubject());
         User user = userJpaRepository.findById(userId).orElse(null);
         if (user == null) return null;
 
+
+        //새 AccessToken 발급
         String newAccessToken = jwtProvider.createAccessToken(user.getUserId());
+
+
         return new TokenResponse(newAccessToken, refreshToken);
     }
 
