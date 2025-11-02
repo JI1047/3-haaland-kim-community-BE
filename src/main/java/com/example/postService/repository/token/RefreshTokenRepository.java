@@ -2,6 +2,8 @@ package com.example.postService.repository.token;
 
 import com.example.postService.entity.token.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -15,5 +17,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     /**
      * 특정 사용자 ID에 연결된 모든 리프레시 토큰을 일괄 삭제할 때 사용됨(재로그인 시 기존 토큰 무효화 등)
      */
+    @Transactional
+    @Modifying
     void deleteByUser_UserId(Long userId);
 }
