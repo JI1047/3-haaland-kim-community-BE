@@ -23,9 +23,9 @@ public class RefreshToken {
     @Column(unique = true)
     private String token;
 
-    private Instant expiresAt;
+    private Instant expiresAt;//만료 시간
 
-    private boolean revoked;
+    private boolean revoked;//RefreshToken 만료 여부
 
     /**
      * RefreshToken은 인증 상태 유지용 데이터이기 때문에
@@ -35,10 +35,8 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-
-
-
-
-
-
+    //refreshToken이 만료된 것을 업데이트하기 위한 메서드
+    public void updateRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
 }

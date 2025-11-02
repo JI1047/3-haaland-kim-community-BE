@@ -1,12 +1,9 @@
 package com.example.postService.controller;
 
-import com.example.postService.dto.token.TokenResponse;
 import com.example.postService.jwt.CookieUtil;
 import com.example.postService.jwt.TokenService;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,15 +54,16 @@ public class JwtController {
             //case1. accessToken 존재 X, refreshToken 존재
             if(refreshToken != null){
 
-                var tokenResponse = tokenService.refreshTokens(refreshToken, httpServletResponse);
+                var tokenResponse = tokenService.refreshTokensRTR(refreshToken, httpServletResponse);
 
                 cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
 
                 Map<String,Object> success = new HashMap<>();
                 success.put("login", true);
-                success.put("message", "토큰 재발급 성공");
+                success.put("message", "RTR 토큰 재발급 성공");
                 success.put("status", 200);
                 success.put("accessToken", tokenResponse.getAccessToken());
+                success.put("refreshToken", tokenResponse.getRefreshToken());
 
                 return ResponseEntity.ok(success);
             }
@@ -82,20 +80,16 @@ public class JwtController {
             //case3. accessToken 만료, refreshToken 존재
             if(refreshToken != null){
 
-                var tokenResponse = tokenService.refreshTokens(refreshToken, httpServletResponse);
+                var tokenResponse = tokenService.refreshTokensRTR(refreshToken, httpServletResponse);
 
                 cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
 
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
-                System.out.println("-------------------------------------------");
-
                 Map<String,Object> success = new HashMap<>();
                 success.put("login", true);
-                success.put("message", "토큰 재발급 성공");
+                success.put("message", "RTR 토큰 재발급 성공");
                 success.put("status", 200);
                 success.put("accessToken", tokenResponse.getAccessToken());
+                success.put("refreshToken", tokenResponse.getRefreshToken());
 
                 return ResponseEntity.ok(success);
             }

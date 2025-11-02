@@ -34,23 +34,42 @@ public class TokenService {
     private static final int REFRESH_TOKEN_EXPIRATION = 14 * 24 * 3600; // 14일
 
     /**
-     * AccessToken 재발급 (RefreshToken 검증 후)
+     * RTR 방식 (RefreshTokenRotation)
+     * Refresh Token을 1회용으로 만들어서 ‘한 번 쓴 RefreshToken은 즉시 무효화하고 재사용이 감지되면 TokenFamily 전체를 무효화해 탈취를 차단하는 기법
+     * TokenFamily - RT(1)가 무효화 되고 RT(2)가 탄생 같이 클라이언트에 대해 발행된 원본 RefreshToken으로부터 교환한 모든 Refresh Token
+     * - 한번 사용된 RefreshToken은 더 이상 유효하지 않음
+     * - 이상요청이나 로그아웃 시 패밀리 전체를 무효화
+     * 1. AT만료되었을 때 기존 refreshToken 처럼 Refresh 토큰 및 토큰 해당 User 검증
+     * 2. AccessToken 새로 발급
+     * 3. 기존 RefreshToken revoked True로 변경
+     * 4. 해당 User의 RefreshToken 새로 생성
+     * 5. 새로운 AccessToken,RefreshToken 발급
+     *
      */
     @Transactional
-    public TokenResponse refreshTokens(String refreshToken, HttpServletResponse response) {
+    public TokenResponse refreshTokensRTR(String refreshToken, HttpServletResponse response) {
+
+        //RefreshToken 추출
         var parsedRefreshToken = jwtProvider.parse(refreshToken);
 
+        //RefreshToken 검증 없거나 만료 시 null 반환
         RefreshToken entity = refreshTokenRepository.findByTokenAndRevokedFalse(refreshToken).orElse(null);
         if (entity == null || entity.getExpiresAt().isBefore(Instant.now())) {
             return null;
         }
 
+        //RefreshToken의 userId를 추출하여 User 검증 없다면 null반환
         Long userId = Long.valueOf(parsedRefreshToken.getBody().getSubject());
         User user = userJpaRepository.findById(userId).orElse(null);
         if (user == null) return null;
 
-        String newAccessToken = jwtProvider.createAccessToken(user.getUserId());
-        return new TokenResponse(newAccessToken, refreshToken);
+
+
+        //해당 refreshToken의 revoked를 true로 변경하여 만료됨으로 업데이트
+        entity.updateRevoked(true);
+
+        //새로운 AccessToken/ RefreshToken 생성 및 저장(generateAndSaveTokens 메서드 재사용)
+        return generateAndSaveTokens(user);
     }
 
     /**
