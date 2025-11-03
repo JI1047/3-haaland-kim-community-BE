@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -90,6 +91,16 @@ public class UserController {
 
         cookieUtil.clearCookies(response, "accessToken", "refreshToken");
         return ResponseEntity.ok("로그아웃 성공");
+    }
+
+    /**
+     * 이미지 업로드 controller
+     */
+    @PostMapping("/profile/image")
+    public ResponseEntity<String> uploadProfileImage(
+            @RequestParam("file") MultipartFile file) {
+        String imageUrl = userService.uploadProfileImage(file);
+        return ResponseEntity.ok(imageUrl);
     }
 
 

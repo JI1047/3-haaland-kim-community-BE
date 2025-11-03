@@ -31,11 +31,7 @@ public interface UserMapper {
     @Mapping(source = "userProfile.profileImage", target = "profileImage")
     GetUserResponseDto userToUGetUserResponseDto(User user);
 
-    //UserSession 생성 mapper
-    @Mapping(source = "userProfileId", target = "userProfileId")
-    @Mapping(source = "nickname", target = "nickname")
-    @Mapping(source = "profileImage",target = "profileImage")
-    UserSession userProfileToSessionUser(UserProfile userProfile);
+
 
     @Mapping(target = "createdDate", expression = "java(java.time.LocalDateTime.now())")
     UserTerms TermsAgreementDtoToUserTerms(TermsAgreementDto dto,User user);

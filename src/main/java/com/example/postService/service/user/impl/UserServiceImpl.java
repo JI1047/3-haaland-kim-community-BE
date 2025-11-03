@@ -17,6 +17,7 @@ import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.repository.user.UserTermsJpaRepository;
 import com.example.postService.service.user.UserService;
+import com.example.postService.util.FileStorage;
 import com.example.postService.util.PasswordEncoderUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,11 +36,11 @@ import java.util.Map;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserJpaRepository userJpaRepository;
-    private final UserProfileJpaRepository userProfileJpaRepository;
     private final UserTermsJpaRepository userTermsJpaRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
+    private final FileStorage fileStorage;
 
     /**
      * 회원가입 로직
@@ -256,6 +258,18 @@ public class UserServiceImpl implements UserService {
         //사용자에게는 회원탈퇴 성공 메세지 반환
         return ResponseEntity.ok("회원탈퇴 성공");
 
+    }
+
+    @Transactional
+    public String uploadProfileImage(MultipartFile file) {
+
+
+        try {
+            String fileName = fileStorage.storeFile(file);
+            return fileName;
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 업로드 실패: " + e.getMessage());
+        }
     }
 
     /**회원정보 삭제 HardDelete버전
