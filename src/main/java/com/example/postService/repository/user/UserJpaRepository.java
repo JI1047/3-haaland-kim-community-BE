@@ -2,6 +2,7 @@ package com.example.postService.repository.user;
 
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -37,6 +38,10 @@ public interface UserJpaRepository extends JpaRepository<User,Long>, UserCustomR
     Optional<User> findByUserProfile(UserProfile userProfile);
 
     Optional<User> findByUserId(Long userId);
+
+    @Transactional
+    Integer deleteByIsDeletedTrue();
+
 
 
 }
