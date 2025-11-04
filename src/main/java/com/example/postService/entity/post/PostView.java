@@ -48,9 +48,10 @@ public class PostView {
 
         commentCount -= 1;
     }
-    //조회수 증가 메서드 (이건 구현하지 못했습니다.)
-    public void lookCountUpdate() {
-        lookCount+=1;
+
+    //조회수 증가 메서드
+    public void lookCountUpdate(Integer lookCount) {
+        this.lookCount = lookCount;
     }
 
 

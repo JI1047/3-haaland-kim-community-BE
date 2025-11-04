@@ -5,6 +5,7 @@ import com.example.postService.dto.post.response.GetPostListResponseWrapperDto;
 import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
+import com.example.postService.scheduler.PostViewSchedulerService;
 import com.example.postService.service.post.PostService;
 import com.example.postService.util.FileStorage;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ public class PostController {
 
     private final PostService postService;
     private final FileStorage fileStorage;
+    private final PostViewSchedulerService postViewSchedulerService;
 
     //게시물 목록 조회(list) controller
     @GetMapping("/list")
@@ -35,6 +37,8 @@ public class PostController {
     //게시물 상세 조회 controller
     @GetMapping("/{postId}")
     public ResponseEntity<GetPostResponseDto> getPost(@PathVariable Long postId) {
+        postViewSchedulerService.addViewToCache(postId);
+
         return postService.getPost(postId);
 
     }
