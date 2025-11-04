@@ -1,4 +1,4 @@
-package com.example.postService.service;
+package com.example.postService.scheduler;
 
 import com.example.postService.repository.user.UserJpaRepository;
 import lombok.RequiredArgsConstructor;
