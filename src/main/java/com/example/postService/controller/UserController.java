@@ -10,6 +10,7 @@ import com.example.postService.dto.user.request.CreateUserRequestDto;
 import com.example.postService.dto.user.request.UpdateUserProfileRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
+import com.example.postService.util.FileStorage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -27,6 +29,7 @@ public class UserController {
     private final UserService userService;
     private final CookieUtil cookieUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FileStorage fileStorage;
 
     // 회원가입 controller
     @PostMapping("/sign-up")
@@ -98,8 +101,8 @@ public class UserController {
      */
     @PostMapping("/profile/image")
     public ResponseEntity<String> uploadProfileImage(
-            @RequestParam("file") MultipartFile file) {
-        String imageUrl = userService.uploadProfileImage(file);
+            @RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = fileStorage.storeFile(file);
         return ResponseEntity.ok(imageUrl);
     }
 

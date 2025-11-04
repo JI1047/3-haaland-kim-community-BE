@@ -149,7 +149,6 @@ public class UserServiceImpl implements UserService {
 
         User user = userJpaRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
-        System.out.println("---------------------------------");
         System.out.println(user.getEmail());
         //Mapper을 통해 응답 dto 변환 후 반환
         return ResponseEntity.ok(userMapper.userToUGetUserResponseDto(user));
@@ -260,17 +259,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    @Transactional
-    public String uploadProfileImage(MultipartFile file) {
 
-
-        try {
-            String fileName = fileStorage.storeFile(file);
-            return fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 업로드 실패: " + e.getMessage());
-        }
-    }
 
     /**회원정보 삭제 HardDelete버전
      * 위에 softDelete버전 메서드 service로직을 만들었습니다

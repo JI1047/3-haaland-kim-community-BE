@@ -32,8 +32,5 @@ public interface UserService {
 
     ResponseEntity<String> softDelete(HttpServletRequest httpServletRequest);
 
-    String uploadProfileImage(MultipartFile file);
-//
-//    @Transactional
-//    ResponseEntity<String> hardDelete(Long userId);
+
 }
