@@ -80,12 +80,13 @@ public class UserController {
     @PutMapping("/log-out")
     public ResponseEntity<String> logout(HttpServletRequest httpServletRequest, HttpServletResponse response) {
 
+        // 1. AccessToken에서 userId 추출
         Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        //DB에 저장된 UserId에 대한 RefreshToken 삭제
+
+        // 2. 해당 userId의 RefreshToken 전부 무효화
         refreshTokenRepository.deleteByUser_UserId(userId);
 
-        //cookieUtil clearCookie 메서드를 통해서 클라이언트에 잇는 토큰 삭제
         cookieUtil.clearCookies(response, "accessToken", "refreshToken");
         return ResponseEntity.ok("로그아웃 성공");
     }
