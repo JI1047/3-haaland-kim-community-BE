@@ -30,11 +30,11 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse =ErrorResponse.builder()
                 .success(false)
                 .code("SERVER_ERROR")
-                .message("서버 내부 오류가 발생했습니다.")
+                .message(e.getMessage())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .path(httpServletRequest.getRequestURI())
                 .build();
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
     //커스텀 예외처리 발생 하고 싶을 시 customException작성

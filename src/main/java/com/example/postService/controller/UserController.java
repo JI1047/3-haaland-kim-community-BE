@@ -1,17 +1,16 @@
 package com.example.postService.controller;
 
 import com.example.postService.dto.user.request.UpdateUserPasswordRequestDto;
+import com.example.postService.jwt.CookieUtil;
+import com.example.postService.repository.token.RefreshTokenRepository;
 import com.example.postService.service.user.UserService;
 import com.example.postService.dto.login.request.LoginRequestDto;
 import com.example.postService.dto.user.request.CreateUserRequestDto;
 import com.example.postService.dto.user.request.UpdateUserProfileRequestDto;
 import com.example.postService.dto.user.response.CreateUserResponseDto;
 import com.example.postService.dto.user.response.GetUserResponseDto;
-import com.example.postService.session.SessionManager;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final SessionManager sessionManager;
+    private final CookieUtil cookieUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     // 회원가입 controller
     @PostMapping("/sign-up")
@@ -34,12 +34,11 @@ public class UserController {
 
     //로그인 controller
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDto dto, HttpServletRequest httpServletRequest) {
-        //로그인에 필요한 email,password를 dto를 통해 입력받고
-        //request 세션 생성을 위해 필요한 HttpServletRequest 객체
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDto dto, HttpServletResponse httpServletResponse) {
+
 
         //userService.login로직을 통해 로그인 및 세션 설정 수행
-        return userService.login(dto, httpServletRequest);
+        return userService.login(dto, httpServletResponse);
 
     }
 
@@ -65,9 +64,9 @@ public class UserController {
 
 
     //회원정보 수정 controller(soft-delete)
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<String> delete(@PathVariable Long userId) {
-        return userService.softDelete(userId);
+    @DeleteMapping()
+    public ResponseEntity<String> delete(HttpServletRequest httpServletRequest) {
+        return userService.softDelete(httpServletRequest);
     }
 
 
@@ -79,10 +78,15 @@ public class UserController {
      */
     //로그아웃 controller
     @PutMapping("/log-out")
-    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<String> logout(HttpServletRequest httpServletRequest, HttpServletResponse response) {
 
-        sessionManager.expireSession(request, response);
-        //클라이언트에 저장된 JSESSIONID쿠키 삭제
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+
+        //DB에 저장된 UserId에 대한 RefreshToken 삭제
+        refreshTokenRepository.deleteByUser_UserId(userId);
+
+        //cookieUtil clearCookie 메서드를 통해서 클라이언트에 잇는 토큰 삭제
+        cookieUtil.clearCookies(response, "accessToken", "refreshToken");
         return ResponseEntity.ok("로그아웃 성공");
     }
 

@@ -7,15 +7,17 @@ import com.example.postService.dto.comment.response.GetCommentResponseDto;
 import com.example.postService.dto.user.session.UserSession;
 import com.example.postService.entity.comment.Comment;
 import com.example.postService.entity.post.Post;
+import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
+import com.example.postService.jwt.CookieUtil;
+import com.example.postService.jwt.TokenService;
 import com.example.postService.mapper.comment.CommentMapper;
 import com.example.postService.repository.comment.CommentJpaRepository;
 import com.example.postService.repository.post.PostJpaRepository;
+import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.comment.CommentService;
-import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,21 +28,16 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
     private final CommentMapper commentMapper;
-
     private final CommentJpaRepository commentJpaRepository;
-
     private final PostJpaRepository postJpaRepository;
+    private final UserJpaRepository userJpaRepository;
 
-    private final UserProfileJpaRepository userProfileJpaRepository;
-
-    private final SessionManager sessionManager;
 
     @Override
     public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
@@ -80,19 +77,16 @@ public class CommentServiceImpl implements CommentService {
 
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
-        }
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
 
 
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
-
 
         Comment comment = commentMapper.toComment(dto, post, userProfile);
 
@@ -124,21 +118,19 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public ResponseEntity<String> updateComment(Long postId, Long commentId, UpdateCommentDto dto, HttpServletRequest httpServletRequest) {
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
-        }
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
 
 
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
         Comment comment = commentJpaRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
         if(!comment.getUserProfile().equals(userProfile)) {
             throw new IllegalArgumentException("해당 댓글을 작성한 작성자만 수정할 수 있습니다!");
@@ -169,14 +161,12 @@ public class CommentServiceImpl implements CommentService {
     public ResponseEntity<String> deleteComment(Long postId, Long commentId, HttpServletRequest httpServletRequest) {
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
 
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근 할 수 없습니다. 로그인 해주세요!");
-        }
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+        UserProfile userProfile = user.getUserProfile();
 
 
         Post post = postJpaRepository.findById(postId)
@@ -184,8 +174,6 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment= commentJpaRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
-
-
 
         if(!comment.getUserProfile().equals(userProfile)) {
             throw new IllegalArgumentException("해당 댓글 작성자만 수정할 수 있습니다.");
@@ -198,20 +186,5 @@ public class CommentServiceImpl implements CommentService {
         return ResponseEntity.ok("댓글 삭제 성공");
     }
 
-    @Override
-    public ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, Long commentId, HttpServletRequest httpServletRequest) {
-        Post post = postJpaRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
-        Comment comment= commentJpaRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
 
-        boolean isOwner = userSession.getUserProfileId()
-                .equals(comment.getUserProfile().getUserProfileId());
-        if (!isOwner) {
-            throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");
-        }
-        return ResponseEntity.ok(Map.of("match", true));
-
-    }
 }

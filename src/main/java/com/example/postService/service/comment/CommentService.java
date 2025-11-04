@@ -23,5 +23,4 @@ public interface CommentService {
     @Transactional
     ResponseEntity<String> deleteComment(Long postId, Long commentId, HttpServletRequest httpServletRequest);
 
-    ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, Long commentId, HttpServletRequest httpServletRequest);
 }

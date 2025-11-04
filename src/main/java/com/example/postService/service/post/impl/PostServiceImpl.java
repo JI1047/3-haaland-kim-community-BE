@@ -10,13 +10,17 @@ import com.example.postService.entity.post.Post;
 import com.example.postService.entity.post.PostContent;
 import com.example.postService.entity.post.PostLike;
 import com.example.postService.entity.post.PostView;
+import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
+import com.example.postService.jwt.CookieUtil;
+import com.example.postService.jwt.TokenService;
 import com.example.postService.mapper.post.PostMapper;
 import com.example.postService.repository.post.PostJpaRepository;
 import com.example.postService.repository.post.PostLikeJpaRepository;
+import com.example.postService.repository.token.RefreshTokenRepository;
+import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.post.PostService;
-import com.example.postService.session.SessionManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +32,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +39,9 @@ public class PostServiceImpl implements PostService {
 
     private final PostMapper postMapper;
     private final PostJpaRepository postJpaRepository;
-    private final UserProfileJpaRepository userProfileJpaRepository;
     private final PostLikeJpaRepository postLikeJpaRepository;
-    private final SessionManager sessionManager;
+    private final UserJpaRepository userJpaRepository;
+
 
 
     /**
@@ -61,14 +64,18 @@ public class PostServiceImpl implements PostService {
 
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
-
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근 권한이 없습니다. 로그인 해주세요!");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
         }
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile userProfile = user.getUserProfile();
+
+
 
 
         //PostView 객체 생성
@@ -223,14 +230,18 @@ public class PostServiceImpl implements PostService {
     public ResponseEntity<String> updatePostLike(Long postId, HttpServletRequest httpServletRequest) {
 
 
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
-
-        if (userSession == null || userSession.getUserProfileId() == null) {
-            throw new IllegalArgumentException("접근할 수 없습니다. 로그인 해주세요!");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        if (userId == null) {
+            throw new IllegalArgumentException("인증 정보가 없습니다. 로그인 해주세요.");
         }
 
-        UserProfile userProfile = userProfileJpaRepository.findById(userSession.getUserProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자 프로필을 찾을 수 없습니다."));
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile userProfile = user.getUserProfile();
+
+
 
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
@@ -256,10 +267,16 @@ public class PostServiceImpl implements PostService {
     public ResponseEntity<Map<String, Boolean>> checkWriter(Long postId, HttpServletRequest httpServletRequest) {
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
-        UserSession userSession = sessionManager.getSession(httpServletRequest);
+
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile userProfile = user.getUserProfile();
 
 
-        boolean isOwner = userSession.getUserProfileId()
+        boolean isOwner = userProfile.getUserProfileId()
                 .equals(post.getUserProfile().getUserProfileId());
         if(!isOwner) {
             throw new IllegalArgumentException("로그인 한 사용자와 일치하지 않습니다.");
