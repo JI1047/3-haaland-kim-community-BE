@@ -2,7 +2,6 @@ package com.example.postService.controller;
 
 import com.example.postService.dto.user.request.UpdateUserPasswordRequestDto;
 import com.example.postService.jwt.CookieUtil;
-import com.example.postService.jwt.JwtProvider;
 import com.example.postService.repository.token.RefreshTokenRepository;
 import com.example.postService.service.user.UserService;
 import com.example.postService.dto.login.request.LoginRequestDto;

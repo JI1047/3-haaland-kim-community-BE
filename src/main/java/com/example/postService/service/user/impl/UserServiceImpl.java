@@ -95,15 +95,15 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    /**로그인 처리 Service 로직
-     * 1. 이메일로 사용자 조회 후 존재 여부 검증
-     * 2. 암호화된 비밀번호와 dto.password를 통해 비밀번호 일치 여부 검증
-     * 3. 인증 성공 시, 세션에 UserProfile 정보 저장 후 생성(UserProfile엔터티가 게시물 프로젝트에서 많이 사용되기때문)
-     * ex. 댓글 작성,게시물 작성, 좋아요 처리 등등
-     * 세션 처리는 Spring Security를 배우지 않았기 때문에
-     * LoginCheckInterceptor을 통해 세션 확인 과정을 거치고
-     * WebConfig을 통해 세션이 필요한 엔드포인트를 설정했습니다.
+    /**
+     * 로그인 처리 Service 로직
      *
+     * 1. 입력받은 이메일(dto.email)로 사용자 존재 여부 검증
+     * 2. 입력받은 비밀번호(dto.password)와 암호화된 DB 비밀번호 비교
+     * 3. 동일 사용자(userId)로 기존에 발급된 RefreshToken이 있다면 모두 삭제
+     * 4. AccessToken / RefreshToken 신규 발급 및 DB 저장
+     * 5. 쿠키에 AccessToken, RefreshToken 저장
+     * 6. 성공 메시지 및 AccessToken을 포함한 JSON 응답 반환
      */
     @Override
     @Transactional
@@ -120,12 +120,16 @@ public class UserServiceImpl implements UserService {
         }
 
 
+        //동일한 userId로 이전에 발급된 RefreshToken 전부 삭제
         refreshTokenRepository.deleteByUser_UserId(user.getUserId());
 
+        //TokenService를 통해서 AccessToken,RefreshToken 생성 및 DB 저장
         var tokenResponse = tokenService.generateAndSaveTokens(user);
 
+        //쿠키에 토큰 쿠키 생성
         cookieUtil.addTokenCookies(response,tokenResponse);
 
+        //응답 메세지 반환
         Map<String,Object> success = new HashMap<>();
         success.put("success", true);
         success.put("message", "로그인 성공");
