@@ -1,11 +1,14 @@
 package com.example.postService.entity.user;
 
 import com.example.postService.entity.BaseTime;
+import com.example.postService.entity.token.RefreshToken;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -44,6 +47,12 @@ public class User extends BaseTime {
     @Builder.Default//Builder로 객체 생성시 null로 생성될 수 있음
     private Boolean isDeleted = false;//boolean형은 기본 default값이 false이기 때문에 설정 x
 
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private UserTerms userTerms;
 
     //패스워드 업데이트 메서드
     public void updatePassword(String password) {
