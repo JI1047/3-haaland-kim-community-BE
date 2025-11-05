@@ -1,12 +1,12 @@
 package com.example.postService.controller;
 
-import com.example.postService.dto.token.TokenResponse;
+import com.example.postService.entity.user.User;
 import com.example.postService.jwt.CookieUtil;
 import com.example.postService.jwt.TokenService;
+import com.example.postService.repository.user.UserJpaRepository;
+import com.example.postService.service.user.UserService;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +23,7 @@ public class JwtController {
 
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
+    private final UserJpaRepository userJpaRepository;
 
     /**
      * AccessToken & RefreshToken 검증 및 재발급 로깆
@@ -47,30 +48,22 @@ public class JwtController {
      * accessToken 재발급 메서드를 호출하고 return합니다.
      */
     @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(@CookieValue(value = "accessToken", required = false) String accessToken,
-                                           @CookieValue(value = "refreshToken", required = false) String refreshToken,
-                                           HttpServletResponse httpServletResponse
+    public ResponseEntity<?> validateToken(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse httpServletResponse
     ) {
-        //accessToken이 없는 경우
+        // accessToken이 없는 경우
         if (accessToken == null) {
-
-            //case1. accessToken 존재 X, refreshToken 존재
-            if(refreshToken != null){
-
+            if (refreshToken != null) {
                 var tokenResponse = tokenService.refreshTokensRTR(refreshToken, httpServletResponse);
+                cookieUtil.addTokenCookies(httpServletResponse, tokenResponse);
 
-                cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
+                Long userId = tokenService.extractUserId(tokenResponse.getAccessToken());
+                return ResponseEntity.ok(buildUserResponse(userId));
 
-                Map<String,Object> success = new HashMap<>();
-                success.put("login", true);
-                success.put("message", "RTR 토큰 재발급 성공");
-                success.put("status", 200);
-                success.put("accessToken", tokenResponse.getAccessToken());
-                success.put("refreshToken", tokenResponse.getRefreshToken());
-
-                return ResponseEntity.ok(success);
             }
-            //case 2. accessToken,RefreshToken 둘다 없는 경우
+
             return ResponseEntity.status(401).body(Map.of(
                     "login", false,
                     "message", "로그인이 필요합니다.",
@@ -78,24 +71,18 @@ public class JwtController {
             ));
         }
 
+        // accessToken이 있지만 만료된 경우
         boolean valid = tokenService.validateAccessToken(accessToken);
         if (!valid) {
-            //case3. accessToken 만료, refreshToken 존재
-            if(refreshToken != null){
-
+            if (refreshToken != null) {
                 var tokenResponse = tokenService.refreshTokensRTR(refreshToken, httpServletResponse);
+                cookieUtil.addTokenCookies(httpServletResponse, tokenResponse);
 
-                cookieUtil.addTokenCookies(httpServletResponse,tokenResponse);
+                Long userId = tokenService.extractUserId(tokenResponse.getAccessToken());
+                return ResponseEntity.ok(buildUserResponse(userId));
 
-                Map<String,Object> success = new HashMap<>();
-                success.put("login", true);
-                success.put("message", "RTR 토큰 재발급 성공");
-                success.put("status", 200);
-                success.put("accessToken", tokenResponse.getAccessToken());
-                success.put("refreshToken", tokenResponse.getRefreshToken());
-
-                return ResponseEntity.ok(success);
             }
+
             return ResponseEntity.status(401).body(Map.of(
                     "login", false,
                     "message", "로그인이 필요합니다.",
@@ -103,7 +90,21 @@ public class JwtController {
             ));
         }
 
+        // accessToken 유효한 경우
         Long userId = tokenService.extractUserId(accessToken);
-        return ResponseEntity.ok(Map.of("login", true, "userId", userId));
+        return ResponseEntity.ok(buildUserResponse(userId));
+
+    }
+    //공통 응답 조립 메서드
+    private Map<String, Object> buildUserResponse(Long userId) {
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("login", true);
+        result.put("userId", userId);
+        result.put("nickname", user.getUserProfile().getNickname());
+        result.put("profileImage", user.getUserProfile().getProfileImage());
+        return result;
     }
 }

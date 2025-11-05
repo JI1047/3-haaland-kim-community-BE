@@ -6,12 +6,15 @@ import com.example.postService.dto.post.response.GetPostResponseDto;
 import com.example.postService.dto.post.resquest.CreatePostRequestDto;
 import com.example.postService.dto.post.resquest.UpdatePostRequestDto;
 import com.example.postService.service.post.PostService;
+import com.example.postService.util.FileStorage;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ import java.util.Map;
 public class PostController {
 
     private final PostService postService;
+    private final FileStorage fileStorage;
 
     //게시물 목록 조회(list) controller
     @GetMapping("/list")
@@ -64,5 +68,15 @@ public class PostController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> likePost(@PathVariable Long postId,HttpServletRequest httpServletRequest) {
         return postService.updatePostLike(postId,httpServletRequest);
+    }
+
+    /**
+     * 이미지 업로드 controller
+     */
+    @PostMapping("/image")
+    public ResponseEntity<String> uploadProfileImage(
+            @RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = fileStorage.storeFile(file);
+        return ResponseEntity.ok(imageUrl);
     }
 }

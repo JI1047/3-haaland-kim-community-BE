@@ -6,7 +6,11 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 서블릿 필터를 애플리케이션에 등록하는 스프링 설정 클래스
@@ -34,6 +38,28 @@ public class WebConfig implements WebMvcConfigurer {
         filterRegistrationBean.addUrlPatterns("/*");
         filterRegistrationBean.setOrder(1);
         return filterRegistrationBean;
+    }
+
+    /**
+     * 업로드된 파일을 정적 리소스로 서빙하기 위한 핸들러 설정
+     * 1. 업로드된 실제 디렉토리 경로를 절대 경로로 변환
+     * 2. "/uploads/**" 요청 경로를 해당 로컬 디렉토리로 연결시킴
+     * 3. 결과적으로 http://localhost:8080/uploads/파일명 으로 접근 가능하게 함
+     *
+     * @param registry
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        //로컬에 실제 파일이 저장된 uploads 폴더를 절대 경로로 변환
+        Path uploadDir = Paths.get("uploads").toAbsolutePath().normalize();
+
+        //절대 경로를 Spring이 인식할 수 있도록 URI 형태로 변환
+        String uploadPath = uploadDir.toUri().toString();
+
+        // "/uploads/**"로 들어오는 모든 요청을 uploadPath 경로로 매핑
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(uploadPath);
     }
     /**
      * CORS 설정
