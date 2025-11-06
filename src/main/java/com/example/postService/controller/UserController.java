@@ -21,16 +21,34 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * UserController
+ * ---------------------------------------------------------
+ * 사용자 관련 요청(회원가입, 로그인, 정보 수정 등)을 처리하는 REST 컨트롤러
+ * - 공통 URL Prefix: /api/users
+ * - 프론트엔드와 직접 통신하며, UserService를 통해 비즈니스 로직을 위임
+ * - 응답은 JSON 형태의 ResponseEntity로 반환
+ * ---------------------------------------------------------
+ */
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
-    private final CookieUtil cookieUtil;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final FileStorage fileStorage;
+    private final UserService userService; // 사용자 비즈니스 로직 담당 Service
+    private final CookieUtil cookieUtil; // 쿠키 생성/삭제/검증 유틸
+    private final RefreshTokenRepository refreshTokenRepository; // JWT RefreshToken 관리 Repository
+    private final FileStorage fileStorage; // 프로필 이미지 등 파일 저장소 관리 클래스
 
-    // 회원가입 controller
+    /**
+     * 회원가입 요청 처리 API 컨트롤러
+     * ------------------------------------------
+     * 프론트엔드에서 전달받은 사용자 정보를 검증(@Valid)
+     * - 유효성 검증 통과 후 userService.signUp(dto)를 호출하여 DB에 사용자 등록
+     * - 등록된 회원 정보를 DTO로 변환해 반환
+     * - 예외 발생 시 GlobalExceptionHandler를 통해 처리됨
+     * @param dto 회원가입 요청시 설정한 dto
+     * @return CreateUserResponseDto를 반환
+     */
     @PostMapping("/sign-up")
     public ResponseEntity<CreateUserResponseDto> signUp(@Valid @RequestBody CreateUserRequestDto dto) {
         return ResponseEntity.ok(userService.signUp(dto));
