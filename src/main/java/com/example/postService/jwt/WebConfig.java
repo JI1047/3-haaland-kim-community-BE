@@ -2,6 +2,7 @@ package com.example.postService.jwt;
 
 import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 
 /**
  * 서블릿 필터를 애플리케이션에 등록하는 스프링 설정 클래스
@@ -65,12 +67,14 @@ public class WebConfig implements WebMvcConfigurer {
      * CORS 설정
      * 프론트엔드(JS, React 등)에서 오는 요청 허용
      */
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "http://127.0.0.1:5500", "http://localhost:5500",
-                        "http://13.124.52.101:3000"
-                )
+                .allowedOrigins(allowedOrigins.split(","))
+
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
