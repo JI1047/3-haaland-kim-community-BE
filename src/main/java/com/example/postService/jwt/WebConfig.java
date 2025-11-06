@@ -79,4 +79,22 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
+
+    @Bean
+    public org.springframework.web.filter.CorsFilter corsFilter() {
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // 임시 전체 허용 (배포 후 IP만 남기면 됨)
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new org.springframework.web.filter.CorsFilter(source);
+    }
+    @Bean
+    public FilterRegistrationBean<org.springframework.web.filter.CorsFilter> corsFilterRegistration() {
+        FilterRegistrationBean<org.springframework.web.filter.CorsFilter> registrationBean = new FilterRegistrationBean<>(corsFilter());
+        registrationBean.setOrder(0); // ✅ JWT 필터보다 먼저 실행
+        return registrationBean;
+    }
 }
