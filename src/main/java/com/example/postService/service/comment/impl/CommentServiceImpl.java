@@ -27,8 +27,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+
+/**
+ * CommentServiceImpl
+ * -----------------------------------------------------------
+ * 댓글 관련 비즈니스 로직을 처리하는 서비스 구현체
+ * - 댓글 조회 / 등록 / 수정 / 삭제 로직 담당
+ * - UserId를 HttpServletRequest attribute로 받아 인증 기반 처리
+ * -----------------------------------------------------------
+ */
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
@@ -39,37 +47,50 @@ public class CommentServiceImpl implements CommentService {
     private final UserJpaRepository userJpaRepository;
 
 
+    /**
+     * 댓글 목록 조회 로직
+     * -----------------------------------------------------------
+     * 1. PathVariable로 전달된 postId를 기반으로 댓글 조회
+     * 2. Pageable(page, size)을 생성하여 페이징 처리
+     * 3. Comment 엔티티를 CommentMapper를 통해 DTO로 변환
+     * 4. 마지막 페이지 여부(isLast) 포함한 래퍼 DTO 반환
+     * -----------------------------------------------------------
+     */
     @Override
     public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
-        Page<Comment> comments = commentJpaRepository.findAllByPostId(postId, pageRequest);
+        PageRequest pageRequest = PageRequest.of(page, size);// 페이지 요청 객체 생성
+
+        Page<Comment> comments = commentJpaRepository.findAllByPostId(postId, pageRequest);// 댓글 조회
 
         List<GetCommentResponseDto> responseDtoList = new ArrayList<>();
         for (Comment comment : comments) {
-            UserProfile userProfile = comment.getUserProfile();
-            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile);
+            UserProfile userProfile = comment.getUserProfile();// 작성자 프로필 조회
+            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile);// DTO 변환
             responseDtoList.add(dto);
         }
 
         GetCommentListResponseWrapperDto wrapperDto =
-                new GetCommentListResponseWrapperDto(responseDtoList, comments.isLast());
+                new GetCommentListResponseWrapperDto(responseDtoList, comments.isLast());// 마지막 페이지 여부 포함
 
         return ResponseEntity.ok(wrapperDto);
     }
 
     /**
      * 댓글 생성 로직
-     * 1. 파라미터로 받은 httpServletRequest을 통해 세션 객체 생성 세션이 없다고 자동생성을 방지하기 위해(false)로 선언
-     * 2. 로그인을 해야 댓글 생성을 할 수 있도록 설계 했기 때문에 세션이 없을 시 로그인이 필요하다는 메세지 반환
-     * 3, custom으로 생성한 UserSession생성 후 null이거 해당하는 User객체가 없을 시 사용자 정보를 찾을 수 없다고 반환
-     * 4. UserSession의 UserProfileId로 UserProfile db로부터 조회(JPA 사용)
-     * 5. 요청에 포함된 postId를 통해서 Post 조회
-     * 5-1. 해당하는 Post가 없을시 에러 메세지 반환
-     * 6.mapper을 통해서 Comment 객체 생성
-     * 7. JPA통해 DB 저장
-     * 8. 해당 Post의 댓글 수 증가
-     * 9. 성공 메세지 반환
-     *
+     * -----------------------------------------------------------
+     * 인증/인가
+     * - JWT 인증 필터에서 HttpServletRequest attribute("userId")로 사용자 ID를 주입받음
+     * - 로그인하지 않은 사용자는 댓글 생성 불가
+     * -----------------------------------------------------------
+     * 처리 순서
+     * 1) 요청 객체에서 userId 추출 → 비로그인 시 IllegalArgumentException
+     * 2) userId로 User 조회 후 UserProfile 획득
+     * 3) postId로 게시글(Post) 조회 → 없으면 예외
+     * 4) CommentMapper를 통해 DTO → Entity 변환
+     * 5) commentJpaRepository.save()로 DB 저장
+     * 6) post.getPostView().commentCountIncrease()로 댓글 수 증가
+     * 7) 성공 메시지 반환
+     * -----------------------------------------------------------
      */
     @Transactional
     @Override
@@ -77,7 +98,7 @@ public class CommentServiceImpl implements CommentService {
 
 
 
-        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");// JWT 인증 시 필터에서 저장된 userId 사용
 
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
@@ -88,11 +109,11 @@ public class CommentServiceImpl implements CommentService {
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
-        Comment comment = commentMapper.toComment(dto, post, userProfile);
+        Comment comment = commentMapper.toComment(dto, post, userProfile);// DTO → Entity 매핑
 
         commentJpaRepository.save(comment);
 
-        post.getPostView().commentCountIncrease();
+        post.getPostView().commentCountIncrease();// 게시글 댓글 수 +1
 
         return ResponseEntity.ok("댓글 생성 성공");
 
@@ -100,25 +121,27 @@ public class CommentServiceImpl implements CommentService {
 
 
     /**
-     *댓글 수정 로직
-     * 1. 파라미터로 받은 httpServletRequest을 통해 세션 객체 생성 세션이 없다고 자동생성을 방지하기 위해(false)로 선언
-     * 2. 로그인을 해야 댓글 생성을 할 수 있도록 설계 했기 때문에 세션이 없을 시 로그인이 필요하다는 메세지 반환
-     * 3, custom으로 생성한 UserSession생성 후 null이거 해당하는 User객체가 없을 시 세션 정보가 유효하지 않음을 반환
-     * 4. UserSession의 UserProfileId로 UserProfile db로부터 조회(JPA 사용)
-     * 5. 요청에 포함된 postId를 통해서 Post 조회
-     * 5-1. 해당하는 Post가 없을시 에러 메세지 반환
-     * 6. 요청에 포함된 commentId를 통해서 Comment 조회
-     * 6-1. 해당하는 Comment가 없을시 에러 메세지 반환
-     * 7. UserSession으로 조회한 UserProfile과 Comment의 작성자가 같은지 검증 진행
-     * 7-1 해당하는 Comment의 작성자가 아닐시 에러 메세지 반환
-     * 8. Comment update 메서드를 통해서 댓글 내용 업데이트
-     * 9. 성공 메세지 반환
+     * 댓글 수정 로직
+     * -----------------------------------------------------------
+     * 인증/인가
+     * - 로그인된 사용자만 수정 가능
+     * - 댓글 작성자 본인인지 검증
+     * -----------------------------------------------------------
+     * 처리 순서
+     * 1) 요청에서 userId 추출
+     * 2) userId로 User 및 UserProfile 조회
+     * 3) postId로 Post 조회 → 없으면 예외
+     * 4) commentId로 Comment 조회 → 없으면 예외
+     * 5) Comment 작성자(UserProfile)와 요청자 일치 여부 검증
+     * 6) 일치 시 comment.updateText()로 내용 수정
+     * 7) 성공 메시지 반환
+     * -----------------------------------------------------------
      */
     @Transactional
     @Override
     public ResponseEntity<String> updateComment(Long postId, Long commentId, UpdateCommentDto dto, HttpServletRequest httpServletRequest) {
 
-        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        Long userId = (Long) httpServletRequest.getAttribute("userId");// 인증된 사용자 ID 가져오기
 
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
@@ -132,29 +155,32 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentJpaRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 댓글을 찾을 수 없습니다."));
 
-        if(!comment.getUserProfile().equals(userProfile)) {
+        if(!comment.getUserProfile().equals(userProfile)) {// 작성자 검증
             throw new IllegalArgumentException("해당 댓글을 작성한 작성자만 수정할 수 있습니다!");
         }
-        comment.updateText(dto.getText());
+        comment.updateText(dto.getText());// 댓글 내용 수정
 
         return ResponseEntity.ok("댓글 수정 성공!");
     }
 
     /**
-     *댓글 삭제 로직
-     * 1. 파라미터로 받은 httpServletRequest을 통해 세션 객체 생성 세션이 없다고 자동생성을 방지하기 위해(false)로 선언
-     * 2. 로그인을 해야 댓글 생성을 할 수 있도록 설계 했기 때문에 세션이 없을 시 로그인이 필요하다는 메세지 반환
-     * 3, custom으로 생성한 UserSession생성 후 null이거 해당하는 User객체가 없을 시 세션 정보가 유효하지 않음을 반환
-     * 4. UserSession의 UserProfileId로 UserProfile db로부터 조회(JPA 사용)
-     * 5. 요청에 포함된 postId를 통해서 Post 조회
-     * 5-1. 해당하는 Post가 없을시 에러 메세지 반환
-     * 6. 요청에 포함된 commentId를 통해서 Comment 조회
-     * 6-1. 해당하는 Comment가 없을시 에러 메세지 반환
-     * 7. UserSession으로 조회한 UserProfile과 Comment의 작성자가 같은지 검증 진행
-     * 7-1 해당하는 Comment의 작성자가 아닐시 에러 메세지 반환
-     * 8. Comment JPA 메서드를 통해서 댓글 삭제
-     * 9. 해당 게시물의 댓글 수 1 감소
-     * 10. 성공 메세지 반환
+     * 댓글 삭제 로직
+     * -----------------------------------------------------------
+     * 인증/인가
+     * - JWT 인증 필터에서 HttpServletRequest attribute("userId")로 주입된 사용자 ID를 사용
+     * - 댓글 작성자 본인만 삭제 가능
+     * -----------------------------------------------------------
+     * 처리 순서
+     * 1) 요청 컨텍스트에서 userId 추출
+     * 2) userId로 User 조회 → 없으면 예외
+     * 3) User로부터 UserProfile 조회
+     * 4) path 변수 postId로 Post 조회 → 없으면 예외
+     * 5) path 변수 commentId로 Comment 조회 → 없으면 예외
+     * 6) Comment.userProfile == 요청자 UserProfile 인지 검증 → 불일치 시 예외
+     * 7) commentJpaRepository.delete(comment)로 삭제 수행
+     * 8) post.getPostView().commentCountDecrease()로 댓글 수 감소
+     * 9) "댓글 삭제 성공" 메시지와 함께 200 OK 반환
+     * -----------------------------------------------------------
      */
     @Transactional
     @Override

@@ -60,6 +60,11 @@ public class FileCleanupSchedulerService {
                 String fileName = file.getName();
                 boolean matched = false;
 
+                //기본 프로필 이미지 인 경우 continue
+                if (fileName.equals("user.png")) {
+                    continue;
+                }
+
                 for (String path : validImagePaths) {
                     try {
                         // URL 디코딩 → 한글, 특수문자 인코딩 문제 방지

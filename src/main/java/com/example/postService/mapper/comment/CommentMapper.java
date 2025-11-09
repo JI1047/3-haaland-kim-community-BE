@@ -11,14 +11,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
 
-
-
-
     //댓글 생성 dto 변화 mapper
     @Mapping(source = "post", target = "post")
     @Mapping(source = "userProfile",target = "userProfile")
     Comment toComment(CreateCommentDto dto, Post post, UserProfile userProfile);
-
 
     GetCommentResponseDto toGetCommentResponseDto(Comment comment, UserProfile userProfile);
 
