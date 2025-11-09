@@ -14,6 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.cookie = `termsAgreement=${encodeURIComponent(JSON.stringify(terms))}; path=/; max-age=3600; SameSite=Lax`;
 
-    window.location.href = "http://localhost:3000/signup-input";
+    window.location.href = `${FRONTEND_URL}/signup-input`;
   });
 });

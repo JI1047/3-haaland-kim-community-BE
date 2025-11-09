@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>이용약관 및 개인정보 동의</title>
     <link rel="stylesheet" href="/css/termsView.css">
+    <script th:inline="javascript">
+        const FRONTEND_URL = /*[[${frontendUrl}]]*/ "";
+    </script>
     <!-- ✅ defer 필수 (DOM 로드 후 실행) -->
     <script defer th:src="@{/js/termsView.js}"></script>
 </head>
