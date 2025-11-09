@@ -87,8 +87,20 @@ public class UserController {
 
     //회원정보 수정 controller(soft-delete)
     @DeleteMapping()
-    public ResponseEntity<String> delete(HttpServletRequest httpServletRequest) {
-        return userService.softDelete(httpServletRequest);
+    public ResponseEntity<String> delete(HttpServletRequest httpServletRequest,HttpServletResponse response) {
+
+        // 1. AccessToken에서 userId 추출
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+
+        userService.softDelete(httpServletRequest);
+
+        // 2. 해당 userId의 RefreshToken 전부 무효화
+        refreshTokenRepository.deleteByUser_UserId(userId);
+
+        cookieUtil.clearCookies(response, "accessToken", "refreshToken");
+
+        return ResponseEntity.ok("로그아웃 성공");
+
     }
 
 
