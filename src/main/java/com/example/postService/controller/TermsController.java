@@ -19,7 +19,7 @@ public class TermsController {
         // 여러 개가 들어있을 수도 있으니 첫 번째 주소만 사용
         String frontendUrl = allowedOrigins.split(",")[0];
         model.addAttribute("frontendUrl", frontendUrl);
-        return "signup"; // signup.html (타임리프)
+        return "termsView";
     }
 
 }
