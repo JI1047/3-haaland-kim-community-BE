@@ -9,6 +9,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 게시물 상세 조회 응답 dto
+ * 제목,게시글 내용,이미지,생성 일자,좋아요 수, 댓글 수, 조회 수, 작성자 닉네임, 작성자 프로필이미지
+ * 댓글들 목록 List를 응답해준다.
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,8 +38,3 @@ public class GetPostResponseDto {
     private String profileImage;//사용자 프로필 이미지
 
 }
-/**
- * 게시물 상세 조회 응답 dto
- * 제목,게시글 내용,이미지,생성 일자,좋아요 수, 댓글 수, 조회 수, 작성자 닉네임, 작성자 프로필이미지
- * 댓글들 목록 List를 응답해준다.
- */

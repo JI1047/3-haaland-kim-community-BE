@@ -14,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/**
+ * 게시글 조회 커스텀 조회 Repository
+ */
 @RequiredArgsConstructor
 public class PostCustomRepositoryImpl implements PostCustomRepository {
 
@@ -28,10 +31,12 @@ public class PostCustomRepositoryImpl implements PostCustomRepository {
     QComment comment = QComment.comment;
 
     /**
-     *
-     * Pageable 관련 객체를 받아 그만큼의 Post객체 list를 불러오도록하는 QueryDSL
-     * fetch join을 이용해 lazy로 설정된 매핑 객체들을 id만 불러오는 것이아닌
-     * 데이터들을 모두 미리 불러와 N+1문제 미리방지
+     * QueryDSL 기반 게시글 목록 페이징 조회
+     * 1) post.userProfile, post.postView를 fetch join으로 미리 로딩
+     *      -> Lazy Loading으로 인한 N+1문제 방지
+     * 2) Pageable 객체를 이용해 offset,limit을 설정하여 페이징 처리
+     * 3) 게시글 전체 개수 세는 퀄
+     * 4) Page 객체로 반환 하여 return
      */
     @Override
     public Page<Post> findListPostQueryDSL(Pageable pageable) {//현재 페이지 정보

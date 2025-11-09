@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 게시글 작성시 요청 dto
+ * 게시글 제목,내용,이미지를 요청받음
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +22,4 @@ public class CreatePostRequestDto {
 
     private String postImage;
 }
-/**
- * 게시글 작성시 요청 dto
- * 게시글 제목,내용,이미지를 요청받음
- */
+

@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * 게시물 목록 조회 응답 dto
+ * 게시글 목록,마지막 페이지 여부 반환
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

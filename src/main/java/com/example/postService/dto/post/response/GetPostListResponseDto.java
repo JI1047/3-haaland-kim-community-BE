@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 게시물 목록 조회 응답 dto
+ * 게시물들의 제목,생성일자,좋아요 수, 댓글 수, 조회 수, 닉네임, 사용자 프로필 이미지를 응답해줌
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +34,4 @@ public class GetPostListResponseDto {
 
     private String profileImage;//사용자 프로필 이미지
 }
-/**
- * 게시물 목록 조회 응답 dto
- * 게시물들의 제목,생성일자,좋아요 수, 댓글 수, 조회 수, 닉네임, 사용자 프로필 이미지를 응답해줌
- */
+
