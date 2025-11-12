@@ -125,15 +125,15 @@ public class UserController {
         return ResponseEntity.ok("로그아웃 성공");
     }
 
-    /**
-     * 이미지 업로드 controller
-     */
-    @PostMapping("/profile/image")
-    public ResponseEntity<String> uploadProfileImage(
-            @RequestParam("file") MultipartFile file) throws IOException {
-        String imageUrl = fileStorage.storeFile(file);
-        return ResponseEntity.ok(imageUrl);
-    }
+//    /**
+//     * 이미지 업로드 controller
+//     */
+//    @PostMapping("/profile/image")
+//    public ResponseEntity<String> uploadProfileImage(
+//            @RequestParam("file") MultipartFile file) throws IOException {
+//        String imageUrl = fileStorage.storeFile(file);
+//        return ResponseEntity.ok(imageUrl);
+//    }
 
 
 }
