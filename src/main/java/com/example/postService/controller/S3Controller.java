@@ -37,10 +37,10 @@ public class S3Controller {
     public ResponseEntity<Map<String, String>> getPresignedUrl(@RequestParam String fileName) {
         // 안전한 파일명 생성
         String safeFileName = FileNameUtil.sanitizeFileName(fileName, "profileImage");
-        // Presigned URL 생성
-        String presignedUrl = s3Service.generatePresignedUrl(fileName);
-        // S3 내부 key 경로
         String key = "public/image/profile/" + safeFileName;
+
+
+        String presignedUrl = s3Service.generatePresignedUrl(key);
 
         // JSON 형태로 응답
         return ResponseEntity.ok(Map.of(
