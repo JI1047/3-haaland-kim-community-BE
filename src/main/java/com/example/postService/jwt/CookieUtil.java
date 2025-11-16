@@ -3,6 +3,7 @@ package com.example.postService.jwt;
 import com.example.postService.dto.token.TokenResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,12 +15,15 @@ public class CookieUtil {
      * 공통 쿠키 생성 로직
      */
      public void addTokenCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAge);
-        response.addCookie(cookie);
+         ResponseCookie cookie = ResponseCookie.from(name, value)
+                 .httpOnly(true)
+                 .secure(false)     // HTTP니까 false
+                 .sameSite("Lax")   // HTTP에서는 None 쓰면 안 됨
+                 .path("/")
+                 .maxAge(maxAge)
+                 .build();
 
+         response.addHeader("Set-Cookie", cookie.toString());
 
 
      }
