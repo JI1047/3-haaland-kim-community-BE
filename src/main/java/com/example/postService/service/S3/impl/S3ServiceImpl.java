@@ -50,7 +50,14 @@ public class S3ServiceImpl implements S3Service {
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(3))
-                .putObjectRequest(putObjectRequest)
+                .putObjectRequest(
+                        PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(key)
+                                .contentType(contentType)
+                                .acl("public-read")
+                                .build()
+                )
                 .build();
 
         PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(presignRequest);
