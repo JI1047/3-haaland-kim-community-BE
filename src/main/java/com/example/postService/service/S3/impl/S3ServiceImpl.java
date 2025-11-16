@@ -45,19 +45,12 @@ public class S3ServiceImpl implements S3Service {
                 .bucket(bucketName)
                 .key(key)
                 .contentType(contentType)
-                .acl("public-read")  // ← 이거 추가
+                .acl("public-read")
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(3))
-                .putObjectRequest(
-                        PutObjectRequest.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .contentType(contentType)
-                                .acl("public-read")
-                                .build()
-                )
+                .putObjectRequest(putObjectRequest)
                 .build();
 
         PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(presignRequest);
