@@ -20,27 +20,22 @@ public class S3ServiceImpl implements S3Service {
     private final String bucketName = "haaland-bucket";
 
     @Override
-    public String generatePresignedUrl(String originalFileName) {
-        String safeFileName = FileNameUtil.sanitizeFileName(originalFileName, "profileImage");
-        String key = "public/image/profile/" + safeFileName;
+    public String generatePresignedUrl(String key) {
 
-        //  확장자 추출
         String extension = "";
-        int dotIndex = originalFileName.lastIndexOf(".");
-        if (dotIndex > 0 && dotIndex < originalFileName.length() - 1) {
-            extension = originalFileName.substring(dotIndex + 1).toLowerCase();
+        int dotIndex = key.lastIndexOf(".");
+        if (dotIndex > 0 && dotIndex < key.length() - 1) {
+            extension = key.substring(dotIndex + 1).toLowerCase();
         }
 
-        //  확장자별 Content-Type 매핑
         String contentType = switch (extension) {
             case "jpg", "jpeg" -> "image/jpeg";
             case "png" -> "image/png";
             case "gif" -> "image/gif";
             case "webp" -> "image/webp";
-            default -> "application/octet-stream"; // 확장자를 모를 때 안전한 기본값
+            default -> "application/octet-stream";
         };
 
-        // Presigned URL 생성
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
