@@ -36,7 +36,8 @@ file:
   upload-dir: uploads
 
 cors:
-  allowed-origins: "http://community-alb-196644401.ap-northeast-2.elb.amazonaws.com"
+  allowed-origins: "https://haaland-community.site, https://www.haaland-community.site"
+
 
 management:
   endpoints:
