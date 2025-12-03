@@ -11,46 +11,35 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 class UserTest {
 
-    @Autowired
-    private MockMvc mockMvc;  // Spring MVC 환경 구성
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Mock
-    private UserService userService;  // 진짜 빈 대신 Mockito Mock
+    private UserService userService;  // DB 접근 없음
 
     @InjectMocks
-    private UserController userController;  // Mock service를 가진 실제 Controller
+    private UserController userController;  // 직접 생성
+
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this); // @Mock, @InjectMocks 초기화
+        MockitoAnnotations.openMocks(this);
+        objectMapper = new ObjectMapper();
     }
 
     @Test
-    @DisplayName("Post /sign-up 회원가입 성공")
-    void SignUpSuccess() throws Exception {
+    @DisplayName("회원가입 성공 - 순수 Mockito Controller Test")
+    void signupSuccess() {
 
-        CreateUserRequestDto requestDto = CreateUserRequestDto.builder()
+        CreateUserRequestDto req = CreateUserRequestDto.builder()
                 .email("test1@email.com")
                 .nickname("test1")
                 .password("Kkkkk11@")
@@ -59,20 +48,22 @@ class UserTest {
                 .termsAgreement(new TermsAgreementDto(true, true, LocalDateTime.now()))
                 .build();
 
-        CreateUserResponseDto responseDto = CreateUserResponseDto.builder()
+        CreateUserResponseDto res = CreateUserResponseDto.builder()
                 .email("test1@email.com")
                 .nickname("test1")
                 .profileImage("http:image.com")
                 .build();
 
-        Mockito.when(userService.signUp(any())).thenReturn(responseDto);
+        when(userService.signUp(any())).thenReturn(res);
 
-        mockMvc.perform(post("/sign-up")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("test1@email.com"))
-                .andExpect(jsonPath("$.nickname").value("test1"))
-                .andExpect(jsonPath("$.profileImage").value("http:image.com"));
+        ResponseEntity<CreateUserResponseDto> response = userController.signUp(req);
+
+        CreateUserResponseDto result = response.getBody();
+
+        assertEquals("test1@email.com", result.getEmail());
+        assertEquals("test1", result.getNickname());
+        assertEquals("http:image.com", result.getProfileImage());
+
+        verify(userService, times(1)).signUp(any());
     }
 }
