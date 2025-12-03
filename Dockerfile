@@ -1,24 +1,33 @@
-# 1단계: Gradle로 빌드하는 빌드 이미지
+# 1단계: 빌드 스테이지
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-# Gradle wrapper + 설정 파일 + 소스 복사
+# Gradle Wrapper 파일과 의존성 관련 파일 먼저 복사
+COPY gradlew .
+COPY gradle ./gradle/
+COPY build.gradle settings.gradle ./
+
+# 의존성 캐시 레이어 생성
+RUN chmod +x gradlew
+RUN ./gradlew dependencies --no-daemon
+
+# 전체 소스 복사
 COPY . .
 
-# JAR 빌드
-RUN ./gradlew clean build -x test
+# 최종 JAR 빌드
+RUN ./gradlew build --no-daemon -x test
 
-# 2단계: 실행용 이미지
+
+# 2단계: 런타임 스테이지
 FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-# 빌드 단계에서 생성된 JAR만 가져옴
+# JAR만 복사
 COPY --from=builder /app/build/libs/*SNAPSHOT.jar app.jar
 
 EXPOSE 8080
-
 ENV SPRING_PROFILES_ACTIVE=docker
 
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

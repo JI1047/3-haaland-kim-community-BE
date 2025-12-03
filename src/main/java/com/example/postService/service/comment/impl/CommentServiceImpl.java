@@ -17,6 +17,7 @@ import com.example.postService.repository.post.PostJpaRepository;
 import com.example.postService.repository.user.UserJpaRepository;
 import com.example.postService.repository.user.UserProfileJpaRepository;
 import com.example.postService.service.comment.CommentService;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -195,6 +196,7 @@ public class CommentServiceImpl implements CommentService {
 
         post.getPostView().commentCountDecrease();
 
+        System.out.println("haaland");
         return ResponseEntity.ok("댓글 삭제 성공");
 
     }

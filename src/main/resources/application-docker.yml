@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: jdbc:mysql://haaland-mysql:3306/community_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: haaland1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+        use_sql_comments: true
+
+  jackson:
+    time-zone: Asia/Seoul
+
+file:
+  upload-dir: uploads
+
+server:
+  servlet:
+    session:
+      timeout: 0
+      persistent: false
+      tracking-modes: cookie
+
+cors:
+  allowed-origins: "https://haaland-community.site,https://www.haaland-community.site"
