@@ -17,6 +17,8 @@ import java.util.List;
  * 프론트에서는 isLast를 활용해 추가 로드 여부를 제어함
  *
  *
+ *
+ *
  */
 @Getter
 @AllArgsConstructor
