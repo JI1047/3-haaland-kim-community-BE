@@ -26,6 +26,9 @@ jobs:
       - name: Test (Gradle)
         run: ./gradlew test
 
+      - name: Build JAR
+        run: ./gradlew bootJar --no-daemon
+
       - name: Docker Hub Login
         uses: docker/login-action@v3
         with:
@@ -36,6 +39,7 @@ jobs:
         run: |
           docker build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/board-be:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/board-be:latest
+
 
 
   deploy:
