@@ -18,7 +18,7 @@ COPY build.gradle settings.gradle ./
 RUN chmod +x gradlew
 #gradle 의존성만 미리 다운로드
 #Docker 캐시층(layer)을 저장해두고 다음 빌드에서 재사용 가능
-RUN ./gradlew dependencies --no-daemon || true
+RUN ./gradlew dependencies --no-daemon >/dev/null 2>&1 || true
 
 # 마지막에 전체 소스코드 복사
 #이렇게 해야 코드를 수정해도 의존성 캐시가 깨지지 않음
