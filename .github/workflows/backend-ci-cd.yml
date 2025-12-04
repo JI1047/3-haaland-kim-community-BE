@@ -37,35 +37,26 @@ jobs:
           docker build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/board-be:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/board-be:latest
 
+
   deploy:
     needs: build-and-push-image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted   # 🔥 여기 중요!! 이제 이 Job은 BE 서버에서 실행됨
 
     steps:
-      - name: Prepare SSH Key for NAT
+      - name: Pull latest image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/board-be:latest
+
+      - name: Stop previous container
+        run: docker stop backend || true
+
+      - name: Remove previous container
+        run: docker rm backend || true
+
+      - name: Run new container
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa     # NAT 접속용 SSH 키
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.NAT_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to Private BE Instance via NAT
-        run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@${{ secrets.NAT_HOST }} \
-          "ssh -i /home/ubuntu/KTB_Cloud.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.PRIVATE_BE_IP }} \
-          '
-          echo \"Stopping previous backend container...\";
-          sudo docker stop backend || true;
-          sudo docker rm backend || true;
-
-          echo \"Pulling latest backend image...\";
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/board-be:latest;
-
-          echo \"Running new backend container...\";
-          sudo docker run -d \
+          docker run -d \
             --name backend \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
             -v /home/ubuntu/app/application-prod.yml:/config/application-prod.yml \
-            ${{ secrets.DOCKER_USERNAME }}/board-be:latest;
-          '"
+            ${{ secrets.DOCKER_USERNAME }}/board-be:latest
