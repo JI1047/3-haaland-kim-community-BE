@@ -1,5 +1,6 @@
 name: BE CI/CD
 
+# main브랜치에 push 되거나 pr 발생시 실행
 on:
   push:
     branches: [ "main" ]
@@ -10,6 +11,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
 
+    # Github repo 코드 가져오기
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -41,10 +43,10 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/board-be:latest
 
 
-
+  # self-hosted runner = BE 서버에서 직접 실행
   deploy:
     needs: build-and-push-image
-    runs-on: self-hosted   # 🔥 여기 중요!! 이제 이 Job은 BE 서버에서 실행됨
+    runs-on: self-hosted
 
     steps:
       - name: Pull latest image
