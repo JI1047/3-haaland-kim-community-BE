@@ -16,7 +16,14 @@ public interface CommentMapper {
     @Mapping(source = "userProfile",target = "userProfile")
     Comment toComment(CreateCommentDto dto, Post post, UserProfile userProfile);
 
-    GetCommentResponseDto toGetCommentResponseDto(Comment comment, UserProfile userProfile);
-
+    @Mapping(source = "comment.commentId", target = "commentId")
+    @Mapping(source = "userProfile.nickname", target = "nickname")
+    @Mapping(source = "userProfile.profileImage", target = "profileImage")
+    @Mapping(source = "isOwner", target = "isOwner")
+    GetCommentResponseDto toGetCommentResponseDto(
+            Comment comment,
+            UserProfile userProfile,
+            boolean isOwner
+    );
 }
 

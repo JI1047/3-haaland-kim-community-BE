@@ -29,6 +29,8 @@ public class GetCommentResponseDto {
 
     private String text;//댓글 내용
 
+    private boolean isOwner;
+
 
 
 }

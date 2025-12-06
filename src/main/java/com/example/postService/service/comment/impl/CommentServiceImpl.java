@@ -59,7 +59,14 @@ public class CommentServiceImpl implements CommentService {
      * -----------------------------------------------------------
      */
     @Override
-    public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size) {
+    public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size, HttpServletRequest httpServletRequest) {
+
+        Long userId = (Long) httpServletRequest.getAttribute("userId");// JWT 인증 시 필터에서 저장된 userId 사용
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile loginuserProfile = user.getUserProfile();
 
         PageRequest pageRequest = PageRequest.of(page, size);// 페이지 요청 객체 생성
 
@@ -71,7 +78,9 @@ public class CommentServiceImpl implements CommentService {
 
             UserProfile userProfile = comment.getUserProfile();// 작성자 프로필 조회
 
-            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile);// DTO 변환
+            boolean isOwner = loginuserProfile.equals(userProfile);
+
+            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile,isOwner);// DTO 변환
 
             responseDtoList.add(dto);
         }

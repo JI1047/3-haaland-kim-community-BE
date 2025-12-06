@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 public interface CommentService {
-    ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size);
+    ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size, HttpServletRequest httpServletRequest);
 
     //댓글 생성 로직
     @Transactional

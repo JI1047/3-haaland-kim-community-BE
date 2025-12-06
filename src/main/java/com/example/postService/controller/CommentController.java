@@ -23,8 +23,8 @@ public class CommentController {
      * 댓글 목록 조회 처리 controller
      */
     @GetMapping()
-    public ResponseEntity<GetCommentListResponseWrapperDto> getAllComments(@PathVariable Long postId, @RequestParam int page, @RequestParam int size) {
-        return commentService.getComments(postId, page, size);
+    public ResponseEntity<GetCommentListResponseWrapperDto> getAllComments(@PathVariable Long postId, @RequestParam int page, @RequestParam int size, HttpServletRequest httpServletRequest) {
+        return commentService.getComments(postId, page, size,httpServletRequest);
     }
 
     /**
