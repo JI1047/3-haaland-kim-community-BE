@@ -63,6 +63,4 @@ jobs:
           docker run -d \
             --name backend \
             -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=prod \
-            -v /home/ubuntu/app/application-prod.yml:/config/application-prod.yml \
             ${{ secrets.DOCKER_USERNAME }}/board-be:latest
