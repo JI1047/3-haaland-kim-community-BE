@@ -1,12 +1,11 @@
 package com.example.postService.global.exception;
 
+import com.example.postService.global.error.ErrorCode;
 import com.example.postService.global.error.ErrorDetail;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 @RestControllerAdvice(basePackages = "com.example.postService")
 public class GlobalExceptionHandler {
 
+    // ✅ 1) DTO Validation 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException e,
@@ -28,52 +28,50 @@ public class GlobalExceptionHandler {
                         .build())
                 .toList();
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .code("VALIDATION_ERROR")
-                .message("입력값이 유효하지 않습니다.") // 전체 메시지
-                .status(HttpStatus.BAD_REQUEST.value())
-                .path(request.getRequestURI())
-                .errors(errorDetails) //  상세 에러 리스트 추가
-                .build();
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.VALIDATION_ERROR,
+                request.getRequestURI(),
+                errorDetails
+        );
 
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity
+                .status(ErrorCode.VALIDATION_ERROR.getStatus())
+                .body(response);
     }
 
+    // ✅ 2) 비즈니스 로직 예외 (중복 체크 등)
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException e,
+            HttpServletRequest request) {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-            IllegalArgumentException e, HttpServletRequest request) {
+        ErrorCode code = e.getErrorCode();
 
-        ErrorDetail detail = ErrorDetail.builder()
-                .field(null) // 비즈니스 로직이라 특정 필드 없음
-                .message(e.getMessage())
-                .build();
+        ErrorResponse response = ErrorResponse.of(
+                code,
+                request.getRequestURI()
+        );
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .code("VALIDATION_ERROR")
-                .message(e.getMessage())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .path(request.getRequestURI())
-                .errors(List.of(detail))
-                .build();
-
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity
+                .status(code.getStatus())
+                .body(response);
     }
 
-
+    // ✅ 3) 그 외 모든 예외
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(
-            Exception e, HttpServletRequest httpServletRequest) {
+            Exception e,
+            HttpServletRequest request) {
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .success(false)
-                .code("SERVER_ERROR")
-                .message(e.getMessage())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .path(httpServletRequest.getRequestURI())
-                .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        e.printStackTrace(); // 로그 남기기 (추후 log.error 로 변경 가능)
+
+        ErrorResponse response = ErrorResponse.of(
+                ErrorCode.SERVER_ERROR,
+                request.getRequestURI()
+        );
+
+        return ResponseEntity
+                .status(ErrorCode.SERVER_ERROR.getStatus())
+                .body(response);
     }
 }

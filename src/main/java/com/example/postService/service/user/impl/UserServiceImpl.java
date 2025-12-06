@@ -9,6 +9,8 @@ import com.example.postService.dto.user.response.GetUserResponseDto;
 import com.example.postService.entity.user.User;
 import com.example.postService.entity.user.UserProfile;
 import com.example.postService.entity.user.UserTerms;
+import com.example.postService.global.error.ErrorCode;
+import com.example.postService.global.exception.BusinessException;
 import com.example.postService.jwt.CookieUtil;
 import com.example.postService.jwt.TokenService;
 import com.example.postService.mapper.user.UserMapper;
@@ -63,12 +65,12 @@ public class UserServiceImpl implements UserService {
 
         //이메일 중복 시 예외 처리
         if (userJpaRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일 입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         //닉네임 중복 시 예외 처리
         if(userJpaRepository.existsByUserProfile_Nickname(dto.getNickname())) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임 입니다.");
+            throw new BusinessException(ErrorCode.NICKNAME_ALREADY_EXISTS);
         }
 
         //BCrypt 방식으로 패스워드 암호화 진행

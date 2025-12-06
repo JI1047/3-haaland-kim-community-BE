@@ -54,7 +54,6 @@ public class CreateUserRequestDto {
      * null+공백문자포함 금지
      * 길이는 8자 이상 20자 이하로 설정
      */
-    @NotBlank(message = "비밀번호는 필수 입력입니다.")
     @Size(min = 8, max = 20)
     private String confirmPassword;
 
