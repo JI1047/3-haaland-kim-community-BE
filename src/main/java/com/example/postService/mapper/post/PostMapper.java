@@ -34,7 +34,7 @@ public interface PostMapper {
 
 
 
-    GetPostResponseDto toGetPostResponseDto(Post post, PostContent postContent, PostView postView, UserProfile userProfile);
+    GetPostResponseDto toGetPostResponseDto(Post post, PostContent postContent, PostView postView, UserProfile userProfile, boolean alreadyLiked);
 
     //PostLike 생성 mapper
     @Mapping(target = "postLikeId", ignore = true)

@@ -49,10 +49,10 @@ public class PostController {
      * 게시물 상세 조회 처리 controller
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<GetPostResponseDto> getPost(@PathVariable Long postId) {
+    public ResponseEntity<GetPostResponseDto> getPost(@PathVariable Long postId, HttpServletRequest httpServletRequest) {
         postViewSchedulerService.addViewToCache(postId);
 
-        return postService.getPost(postId);
+        return postService.getPost(postId, httpServletRequest);
 
     }
 

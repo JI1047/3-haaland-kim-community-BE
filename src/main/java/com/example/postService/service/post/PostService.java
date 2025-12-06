@@ -22,7 +22,7 @@ public interface PostService {
 
     ResponseEntity<GetPostListResponseWrapperDto> getPosts(int page, int size);
 
-    ResponseEntity<GetPostResponseDto> getPost(Long postId);
+    ResponseEntity<GetPostResponseDto> getPost(Long postId, HttpServletRequest httpServletRequest);
 
     @Transactional
     ResponseEntity<String> updatePostLike(Long postId, HttpServletRequest httpServletRequest);

@@ -169,7 +169,16 @@ public class PostServiceImpl implements PostService {
      * 6. 게시물 상세 조회 응답 dto 반환
      */
     @Override
-    public ResponseEntity<GetPostResponseDto> getPost(Long postId) {
+    public ResponseEntity<GetPostResponseDto> getPost(Long postId, HttpServletRequest httpServletRequest) {
+
+        Long userId = (Long) httpServletRequest.getAttribute("userId");
+
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        UserProfile userProfile = user.getUserProfile();
+
+
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
@@ -177,9 +186,10 @@ public class PostServiceImpl implements PostService {
 
         PostView postView = post.getPostView();
 
-        UserProfile userProfile = post.getUserProfile();
+        boolean alreadyLiked = postLikeJpaRepository.existsByPostAndUserProfile(post, userProfile);
 
-        GetPostResponseDto getPostResponseDto = postMapper.toGetPostResponseDto(post, postContent, postView, userProfile);
+
+        GetPostResponseDto getPostResponseDto = postMapper.toGetPostResponseDto(post, postContent, postView, userProfile,alreadyLiked);
 
         return ResponseEntity.ok(getPostResponseDto);
 
