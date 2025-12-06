@@ -36,7 +36,7 @@ public class CreateUserRequestDto {
      * 닉네임은 1자 이상 10자 이하로 설정
      */
     @NotBlank(message = "닉네임은 필수 입력입니다.")
-    @Size(min = 1, max = 10)
+    @Size(min = 1, max = 10, message = "닉네임은 1~10자 사이여야 합니다.")
     private String nickname;
 
     /**
@@ -45,7 +45,7 @@ public class CreateUserRequestDto {
      * 비밀번호는 8자 이상 20자 이하
      */
     @NotBlank(message = "비밀번호는 필수 입력입니다.")
-    @Size(min = 8, max = 20)
+    @Size(min = 8, max = 20, message = "비밀번호는 8~20자 사이여야 합니다.")
     private String password;
 
     /**
@@ -54,8 +54,10 @@ public class CreateUserRequestDto {
      * null+공백문자포함 금지
      * 길이는 8자 이상 20자 이하로 설정
      */
-    @Size(min = 8, max = 20)
+    @NotBlank(message = "비밀번호 확인은 필수 입력입니다.")
+    @Size(min = 8, max = 20, message = "비밀번호는 8~20자 사이여야 합니다.")
     private String confirmPassword;
+
 
     /**
      * 회원가입시 요청 받을 회원 프로필 이미지 URL
