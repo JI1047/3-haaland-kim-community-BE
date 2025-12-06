@@ -169,31 +169,33 @@ public class PostServiceImpl implements PostService {
      * 6. 게시물 상세 조회 응답 dto 반환
      */
     @Override
-    public ResponseEntity<GetPostResponseDto> getPost(Long postId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<GetPostResponseDto> getPost(Long postId, HttpServletRequest request) {
 
-        Long userId = (Long) httpServletRequest.getAttribute("userId");
+        Long userId = (Long) request.getAttribute("userId");
 
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        UserProfile userProfile = user.getUserProfile();
-
+        UserProfile loginUserProfile = user.getUserProfile();  // 로그인 사용자 프로필
 
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
 
         PostContent postContent = post.getPostContent();
-
         PostView postView = post.getPostView();
 
-        boolean alreadyLiked = postLikeJpaRepository.existsByPostAndUserProfile(post, userProfile);
+        UserProfile authorProfile = post.getUserProfile();  // 게시글 작성자 프로필
 
+        boolean alreadyLiked =
+                postLikeJpaRepository.existsByPostAndUserProfile(post, loginUserProfile);
 
-        GetPostResponseDto getPostResponseDto = postMapper.toGetPostResponseDto(post, postContent, postView, userProfile,alreadyLiked);
+        GetPostResponseDto dto = postMapper.toGetPostResponseDto(
+                post, postContent, postView, authorProfile, alreadyLiked
+        );
 
-        return ResponseEntity.ok(getPostResponseDto);
-
+        return ResponseEntity.ok(dto);
     }
+
 
     /**
      * 게시물 좋아요 로직
