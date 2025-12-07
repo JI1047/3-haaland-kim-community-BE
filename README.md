@@ -1,1 +1,247 @@
-🌟 Post Service (Spring Boot) 🌟📜 프로젝트 개요이 프로젝트는 게시물(Post), 댓글(Comment), 사용자(User) 관리를 포함하는 커뮤니티 백엔드 서비스입니다. Spring Boot를 기반으로 구축되었으며, **JWT(JSON Web Token)**를 이용한 인증/인가 시스템과 AWS S3를 이용한 파일 업로드를 지원합니다. 특히, 데이터베이스 부하를 줄이고 성능을 최적화하기 위한 다양한 스케줄러(Scheduler) 로직이 적용되어 있습니다.🛠️ 주요 기술 스택분류기술설명BackendJava 17, Spring Boot 3.x핵심 프레임워크 및 언어DataSpring Data JPA, MySQL데이터베이스 ORM 및 영속성 관리AuthJWT (Cookie-based)사용자 인증 및 권한 부여DeploymentAWS S3이미지 파일 저장 및 관리OptimizationConcurrnentHashMap, Scheduling조회수 캐싱 및 비동기 처리UtilitiesLombok, Validation개발 편의성 및 데이터 유효성 검증💻 핵심 기능 및 API 엔드포인트1. 사용자 및 인증 관리 (UserController, JwtController) 🔑JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, accessToken과 refreshToken을 이용한 토큰 재발급(Refresh Token Rotation) 로직이 적용되어 보안과 사용성을 높였습니다.기능HTTP MethodURL설명회원가입POST/api/users/sign-up신규 사용자 등록로그인POST/api/users/loginJWT 발급 및 쿠키 설정회원정보 조회GET/api/users로그인 사용자 정보 조회프로필 수정PUT/api/users/profile닉네임, 프로필 이미지 수정비밀번호 변경PUT/api/users/password사용자 비밀번호 변경회원탈퇴DELETE/api/users사용자 Soft-Delete 및 토큰 무효화로그아웃PUT/api/users/log-outRefreshToken 무효화 및 쿠키 삭제토큰 검증/재발급GET/api/jwt/validate유효성 검사 및 만료 시 토큰 재발급 로직서비스 약관GET/api/terms/signup약관 페이지 뷰 제공 (Server Side View)2. 게시물 관리 (PostController) 📝게시물의 생성, 조회, 수정, 삭제 및 좋아요 기능을 제공합니다.기능HTTP MethodURL설명목록 조회GET/api/posts/list페이지네이션 적용된 게시물 목록 조회상세 조회GET/api/posts/{postId}특정 게시물 상세 정보 조회 및 조회수 캐싱 적용게시물 생성POST/api/posts/create새 게시물 등록작성자 확인GET/api/posts/{postId}/check-writer게시물 작성자와 로그인 사용자 일치 여부 확인게시물 수정PUT/api/posts/{postId}/update특정 게시물 수정게시물 삭제DELETE/api/posts/{postId}/delete특정 게시물 삭제좋아요 처리POST/api/posts/{postId}/like게시물 좋아요/좋아요 취소 토글이미지 업로드POST/api/posts/image임시 이미지 파일 업로드 (로컬 파일 저장 방식)3. 댓글 관리 (CommentController) 💬특정 게시물({postId})에 종속된 댓글에 대한 CRUD 기능을 제공합니다.기능HTTP MethodURL설명댓글 목록 조회GET/api/{postId}/comments특정 게시물의 댓글 목록 조회 (페이지네이션)댓글 등록POST/api/{postId}/comments새 댓글 등록댓글 수정PUT/api/{postId}/comments/{commentId}특정 댓글 수정댓글 삭제DELETE/api/{postId}/comments/{commentId}특정 댓글 삭제4. 파일 저장소 (AWS S3) 관리 (S3Controller) ☁️클라이언트가 직접 AWS S3에 파일을 업로드할 수 있도록 Presigned URL을 발급합니다.기능HTTP MethodURL설명Presigned URL 발급GET/api/s3/presigned파일명에 대한 AWS S3 업로드용 Presigned URL 생성 및 반환🚀 성능 최적화 및 스케줄러1. 게시물 조회수 비동기 업데이트 (PostViewSchedulerService) 📈문제: 모든 게시물 조회 요청마다 DB의 조회수(lookCount)를 업데이트하면 I/O 부하가 커집니다.해결:@GetMapping("/{postId}") 요청 시, DB에 바로 반영하지 않고 ConcurrentHashMap(viewCache)에 게시물 ID별로 조회수를 누적(Merge)합니다.@Scheduled(fixedRate = 10_000)를 이용해 10초마다 캐시된 조회수를 DB에 배치(Batch) 형식으로 일괄 반영합니다.이 방식은 DB I/O를 획기적으로 줄여 서비스의 **TPS(Transaction Per Second)**를 향상시킵니다.2. 고아 파일(Orphan File) 정리 (FileCleanupSchedulerService) 🗑️문제: 사용자가 이미지를 업로드했으나 DB에 최종적으로 등록되지 않은 파일(고아 파일)이 서버 저장 공간을 낭비합니다.해결:@Scheduled(fixedRate = 300000)를 이용해 5분마다 실행됩니다.로컬 uploads/ 디렉터리의 모든 파일명과 DB에 저장된 모든 사용자 프로필 이미지 URL의 파일명을 비교합니다.DB에 경로가 없는 파일을 **"고아 파일"**로 판단하고 물리적으로 삭제하여 저장 공간을 정리합니다.파일명 비교 안정성: 한글/특수문자 문제 방지를 위해 URL 디코딩 및 **문자열 정규화(Normalizer.Form.NFC)**를 적용했습니다.3. Soft-Deleted 사용자 영구 삭제 (UserCleanupSchedulerService) 💀문제: 회원 탈퇴 시 즉시 DB에서 삭제하지 않고 Soft-Delete(is_deleted = true) 처리만 하여 일정 기간 복구 가능성을 열어두어야 합니다.해결:@Scheduled(fixedRate = 30000)를 이용해 주기적으로 실행됩니다.DB에서 is_deleted = true인 사용자 계정을 찾아 실제 **물리적 삭제(delete)**를 수행합니다.참고: 현재는 30초마다 실행되도록 임시 설정되어 있으며, 프로덕션 환경에서는 보통 매일 자정에 실행되도록 설정됩니다.
+🌟 Post Service (Spring Boot)
+
+"단순한 CRUD가 아니라, 현실 서비스의 문제를 해결하는 백엔드 아키텍처를 만들고 싶었습니다."
+
+Spring Boot 기반으로 구현된 커뮤니티 서비스 백엔드로,
+게시물(Post), 댓글(Comment), 사용자(User) 관리뿐 아니라
+JWT 기반 인증, 조회수 비동기 처리, S3 Presigned URL 업로드, 고아 파일 정리 처리 등
+실서비스에서 실제로 고려해야 하는 문제들을 설계 단계부터 반영하여 개발했습니다.
+
+이 프로젝트는 단순 기술 사용을 넘어,
+
+"왜 이런 구조로 설계했는가?"
+"어떤 문제를 해결하기 위한 선택인가?"
+
+를 중심으로 기술을 선택했습니다.
+
+📌 목차
+
+프로젝트 컨셉
+
+기술 스택
+
+핵심 기능 요약
+
+API 상세
+
+문제 해결 기록 (Core Engineering)
+
+스케줄러 기반 자동화 처리
+
+아키텍처 구성
+
+이 프로젝트의 차별점
+
+더 개선할 수 있는 방향
+
+🎯 프로젝트 컨셉
+
+단순 CRUD를 넘어 서비스 운영 관점에서 필요한 문제 해결 능력을 키우기 위한 프로젝트입니다.
+
+특히 아래 세 가지 목표를 가지고 설계했습니다.
+
+1️⃣ 리소스 효율성을 고려한 설계
+
+조회수 증가를 요청 단위로 DB에 반영하면 부하 증가 → 비동기 캐싱 방식으로 해결
+
+이미지 업로드 시 사용되지 않은 파일 누적 방지
+
+탈퇴 유저 데이터 정리 자동화
+
+2️⃣ 실제 서비스처럼 동작하는 인증 흐름 구현
+
+AccessToken 만료 → RefreshToken으로 자동 재발급(RTR)
+
+HttpOnly 쿠키 기반 보안 모델 적용
+
+FE 전역 공통 로직과 통신하는 인증 API 제공
+
+3️⃣ 프론트엔드와의 협업을 고려한 API 설계
+
+FE가 직접 S3에 업로드할 수 있도록 Presigned URL 제공
+
+게시물, 댓글, 유저 정보는 FE 요청 흐름 기준으로 설계
+
+🛠️ 기술 스택
+분류	기술	선택 이유
+Backend	Java 17, Spring Boot 3.x	안정성 + 생산성
+DB	MySQL + Spring Data JPA	직관적인 ORM 모델
+Auth	JWT + HttpOnly Cookie	보안성과 편의성 공존
+Infra	AWS S3	이미지 저장에 최적화
+Optimization	ConcurrentHashMap + Scheduler	조회수 성능 최적화
+Utility	Lombok, Validation	개발 효율성
+💡 핵심 기능 요약
+🔑 사용자 & 인증 (User, Jwt)
+
+회원가입 / 로그인 / 로그아웃
+
+JWT 기반 토큰 발급 및 쿠키 저장
+
+만료된 AccessToken 자동 재발급(Refresh Token Rotation)
+
+Soft Delete 계정 관리
+
+프로필 이미지 & 개인정보 수정
+
+📝 게시물 (Post)
+
+게시물 작성 / 조회 / 수정 / 삭제
+
+좋아요 기능
+
+조회수 캐싱 후 비동기 반영(성능 최적화)
+
+작성자 본인 확인 API 제공
+
+💬 댓글 (Comment)
+
+게시물별 CRUD
+
+이벤트 위임 방식 FE 연동 가능 구조
+
+☁️ 파일 업로드 (S3)
+
+Presigned URL 발급
+
+안전한 파일명 생성
+
+FE → S3 직접 업로드 구조
+
+📡 API 상세
+1. 사용자 / 인증 API
+기능	Method	URL	설명
+회원가입	POST	/api/users/sign-up	신규 사용자 생성
+로그인	POST	/api/users/login	JWT 발급 및 쿠키 저장
+사용자 정보 조회	GET	/api/users	로그인 사용자 정보
+프로필 수정	PUT	/api/users/profile	닉네임·이미지 수정
+비밀번호 변경	PUT	/api/users/password	PW 변경
+회원탈퇴	DELETE	/api/users	Soft delete
+로그아웃	PUT	/api/users/log-out	쿠키 삭제 + RT 삭제
+JWT 유효성 검사	GET	/api/jwt/validate	만료 시 자동 재발급
+2. 게시물(Post) API
+기능	Method	URL
+목록 조회	GET	/api/posts/list
+상세 조회	GET	/api/posts/{postId}
+게시물 생성	POST	/api/posts/create
+작성자 여부 확인	GET	/api/posts/{postId}/check-writer
+게시물 수정	PUT	/api/posts/{postId}/update
+게시물 삭제	DELETE	/api/posts/{postId}/delete
+좋아요 토글	POST	/api/posts/{postId}/like
+이미지 업로드	POST	/api/posts/image
+3. 댓글(Comment) API
+기능	Method	URL
+댓글 목록 조회	GET	/api/{postId}/comments
+댓글 작성	POST	/api/{postId}/comments
+댓글 수정	PUT	/api/{postId}/comments/{commentId}
+댓글 삭제	DELETE	/api/{postId}/comments/{commentId}
+4. AWS S3 Presigned API
+기능	Method	URL
+Presigned URL 발급	GET	/api/s3/presigned
+⚙️ 문제 해결 기록 (Core Engineering)
+1️⃣ 조회수 증가 시 DB 과부하 문제
+● 문제
+
+게시물 조회 시마다 즉시 DB로 write → 트래픽 증가 시 I/O 폭증
+
+● 해결
+
+조회수는 실시간성을 요구하지 않음 → 캐싱 후 배치 반영
+
+ConcurrentHashMap을 활용하여
+postId → 누적 조회수 형태로 저장
+
+10초마다 스케줄러가 DB에 일괄 업데이트
+
+→ 결과: TPS 향상, DB 부하 급감
+
+2️⃣ 이미지 고아 파일 문제
+● 문제
+
+이미지를 업로드했지만 DB에는 등록되지 않은 파일이 계속 쌓임 → 저장소 낭비
+
+● 해결
+
+스케줄러가 5분마다 실행되어
+
+uploads/ 폴더 내부 파일명 → DB의 profileImage 파일명 비교
+
+DB에 없는 파일을 자동 삭제
+
+URL 디코딩 + 문자열 정규화(NFC)로 한글/특수문자 대응
+
+3️⃣ 탈퇴 유저 데이터 누적 문제
+● 문제
+
+Soft Delete로 is_deleted만 true 처리되고 실제 삭제가 안됨
+
+● 해결
+
+스케줄러가 주기적으로 삭제 처리
+
+RT도 즉시 무효화하여 보안 강화
+
+🔄 스케줄러 기반 자동화 처리
+스케줄러	주기	역할
+PostViewSchedulerService	10초	조회수 누적 후 일괄 DB 반영
+FileCleanupSchedulerService	5분	고아 파일 자동 삭제
+UserCleanupSchedulerService	30초	Soft Deleted 유저 물리 삭제
+🏛 아키텍처 구성
+controller
+ ├─ UserController
+ ├─ JwtController
+ ├─ PostController
+ ├─ CommentController
+ └─ S3Controller
+
+service
+ ├─ UserService
+ ├─ PostService
+ ├─ CommentService
+ └─ TokenService
+
+repository
+ ├─ UserJpaRepository
+ ├─ PostJpaRepository
+ └─ RefreshTokenRepository
+
+scheduler
+ ├─ PostViewSchedulerService
+ ├─ FileCleanupSchedulerService
+ └─ UserCleanupSchedulerService
+
+infra / util
+ ├─ FileStorage
+ ├─ FileNameUtil
+ ├─ CookieUtil
+
+⭐ 이 프로젝트의 차별점 (Strong Points)
+
+우테코 스타일로 가장 잘 보여줘야 하는 부분!
+
+✔ 단순 CRUD가 아닌, "운영되는 서비스"를 목표로 설계함
+
+조회수 캐싱, 고아 파일 정리, Soft Delete 등
+운영 환경에서 실제로 필요한 기능들을 직접 구현했습니다.
+
+✔ RTR(Refresh Token Rotation) 전략 구현
+
+실 서비스에서 사용하는 JWT 재발급 전략을 직접 구현하여 보안성 강화.
+
+✔ FE 협업을 고려한 Presigned URL 설계
+
+FE가 S3에 직접 업로드 → 서버 부하 감소 + 확장성 확보
+
+✔ 문제 → 해결 기반의 개발 방식
+
+모든 기능이 “왜 필요한가?”에서 출발하여 설계됨
+→ 상위 레벨의 엔지니어링 역량을 보여주는 지점
+
+🚀 더 개선할 수 있는 방향
+
+Redis 기반 조회수 캐싱 전환
+
+Elasticsearch를 이용한 검색 기능
+
+이미지 처리 서버(Lambda 활용)
+
+Kafka 기반 비동기 이벤트 아키텍처 적용
