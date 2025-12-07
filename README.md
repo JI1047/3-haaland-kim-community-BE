@@ -1,6 +1,6 @@
-## 🌟 시끌벅적 놀이터(Post Service) 🌟
+## 시끌벅적 놀이터(Post Service)
 
-### 📜 프로젝트 개요
+### 프로젝트 개요
 
 이 프로젝트는 게시물(Post), 댓글(Comment), 사용자(User) 관리를 포함하는 커뮤니티 백엔드 서비스입니다. **Spring Boot**를 기반으로 구축되었으며, **JWT(JSON Web Token)**를 이용한 인증/인가 시스템과 **AWS S3**를 이용한 파일 업로드를 지원합니다. 특히, 데이터베이스 부하를 줄이고 성능을 최적화하기 위한 다양한 스케줄러(Scheduler) 로직이 적용되어 있습니다.
 
@@ -18,9 +18,9 @@
 
 ---
 
-## 💻 핵심 기능 및 API 엔드포인트
+## 핵심 기능 및 API 엔드포인트
 
-### 1. 사용자 및 인증 관리 (`UserController`, `JwtController`) 🔑
+### 1. 사용자 및 인증 관리 (`UserController`, `JwtController`) 
 
 JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `refreshToken`을 이용한 토큰 재발급(Refresh Token Rotation) 로직이 적용되어 보안과 사용성을 높였습니다.
 
@@ -39,7 +39,7 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
 
 ---
 
-### 2. 게시물 관리 (`PostController`) 📝
+### 2. 게시물 관리 (`PostController`) 
 
 게시물의 생성, 조회, 수정, 삭제 및 좋아요 기능을 제공합니다.
 
@@ -57,7 +57,7 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
 
 ---
 
-### 3. 댓글 관리 (`CommentController`) 💬
+### 3. 댓글 관리 (`CommentController`) 
 
 특정 게시물(`{postId}`)에 종속된 댓글에 대한 CRUD 기능을 제공합니다.
 
@@ -71,7 +71,7 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
 
 ---
 
-### 4. 파일 저장소 (AWS S3) 관리 (`S3Controller`) ☁️
+### 4. 파일 저장소 (AWS S3) 관리 (`S3Controller`) 
 
 클라이언트가 직접 AWS S3에 파일을 업로드할 수 있도록 Presigned URL을 발급합니다.
 
@@ -82,9 +82,9 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
 
 ---
 
-## 🚀 성능 최적화 및 스케줄러
+##  성능 최적화 및 스케줄러
 
-### 1. 게시물 조회수 비동기 업데이트 (`PostViewSchedulerService`) 📈
+### 1. 게시물 조회수 비동기 업데이트 (`PostViewSchedulerService`) 
 
 - **문제:** 모든 게시물 조회 요청마다 DB의 조회수(`lookCount`)를 업데이트하면 I/O 부하가 커집니다.
 - **해결:**
@@ -92,7 +92,7 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
     2. `@Scheduled(fixedRate = 10_000)`를 이용해 **10초**마다 캐시된 조회수를 DB에 **배치(Batch)** 형식으로 일괄 반영합니다.
     3. 이 방식은 DB I/O를 획기적으로 줄여 서비스의 **TPS(Transaction Per Second)**를 향상시킵니다.
 
-### 2. 고아 파일(Orphan File) 정리 (`FileCleanupSchedulerService`) 🗑️
+### 2. 고아 파일(Orphan File) 정리 (`FileCleanupSchedulerService`) 
 
 - **문제:** 사용자가 이미지를 업로드했으나 DB에 최종적으로 등록되지 않은 파일(고아 파일)이 서버 저장 공간을 낭비합니다.
 - **해결:**
@@ -101,7 +101,7 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
     3. DB에 경로가 없는 파일을 **"고아 파일"**로 판단하고 물리적으로 삭제하여 저장 공간을 정리합니다.
     - **파일명 비교 안정성:** 한글/특수문자 문제 방지를 위해 **URL 디코딩** 및 **문자열 정규화(`Normalizer.Form.NFC`)**를 적용했습니다.
 
-### 3. Soft-Deleted 사용자 영구 삭제 (`UserCleanupSchedulerService`) 💀
+### 3. Soft-Deleted 사용자 영구 삭제 (`UserCleanupSchedulerService`) 
 
 - **문제:** 회원 탈퇴 시 즉시 DB에서 삭제하지 않고 Soft-Delete(`is_deleted = true`) 처리만 하여 일정 기간 복구 가능성을 열어두어야 합니다.
 - **해결:**
