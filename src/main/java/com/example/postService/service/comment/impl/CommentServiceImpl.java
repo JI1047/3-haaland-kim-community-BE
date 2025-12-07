@@ -115,6 +115,11 @@ public class CommentServiceImpl implements CommentService {
 
         Long userId = (Long) httpServletRequest.getAttribute("userId");// JWT 인증 시 필터에서 저장된 userId 사용
 
+        //  로그인 안 된 경우 처리
+        if (userId == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
         User user = userJpaRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
