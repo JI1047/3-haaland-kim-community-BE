@@ -59,37 +59,42 @@ public class CommentServiceImpl implements CommentService {
      * -----------------------------------------------------------
      */
     @Override
-    public ResponseEntity<GetCommentListResponseWrapperDto> getComments(Long postId, int page, int size, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<GetCommentListResponseWrapperDto> getComments(
+            Long postId, int page, int size, HttpServletRequest request) {
 
-        Long userId = (Long) httpServletRequest.getAttribute("userId");// JWT 인증 시 필터에서 저장된 userId 사용
+        Long userId = (Long) request.getAttribute("userId");
 
-        User user = userJpaRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+        UserProfile loginUserProfile = null;
 
-        UserProfile loginuserProfile = user.getUserProfile();
+        // 🔥 로그인한 사용자일 때만 프로필 조회
+        if (userId != null) {
+            User user = userJpaRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+            loginUserProfile = user.getUserProfile();
+        }
 
-        PageRequest pageRequest = PageRequest.of(page, size);// 페이지 요청 객체 생성
+        PageRequest pageRequest = PageRequest.of(page, size);
 
-        Page<Comment> comments = commentJpaRepository.findAllByPostId(postId, pageRequest);// 댓글 조회
+        Page<Comment> comments = commentJpaRepository.findAllByPostId(postId, pageRequest);
 
         List<GetCommentResponseDto> responseDtoList = new ArrayList<>();
 
         for (Comment comment : comments) {
+            UserProfile writerProfile = comment.getUserProfile();
 
-            UserProfile userProfile = comment.getUserProfile();// 작성자 프로필 조회 1
+            // 🔥 로그인 안 했으면 isOwner는 false
+            boolean isOwner = loginUserProfile != null && loginUserProfile.equals(writerProfile);
 
-            boolean isOwner = loginuserProfile.equals(userProfile);
-
-            GetCommentResponseDto dto = commentMapper.toGetCommentResponseDto(comment, userProfile,isOwner);// DTO 변환
+            GetCommentResponseDto dto =
+                    commentMapper.toGetCommentResponseDto(comment, writerProfile, isOwner);
 
             responseDtoList.add(dto);
         }
 
         GetCommentListResponseWrapperDto wrapperDto =
-                new GetCommentListResponseWrapperDto(responseDtoList, comments.isLast());// 마지막 페이지 여부 포함
+                new GetCommentListResponseWrapperDto(responseDtoList, comments.isLast());
 
         return ResponseEntity.ok(wrapperDto);
-
     }
 
     /**
