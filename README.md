@@ -15,7 +15,6 @@
 | **Optimization** | ConcurrnentHashMap, Scheduling | 조회수 캐싱 및 비동기 처리 |
 | **Utilities** | Lombok, Validation | 개발 편의성 및 데이터 유효성 검증 |
 
-Sheets로 내보내기
 
 ---
 
@@ -37,7 +36,6 @@ JWT 기반의 인증 흐름을 쿠키를 통해 관리하며, `accessToken`과 `
 | **토큰 검증/재발급** | `GET` | `/api/jwt/validate` | 유효성 검사 및 만료 시 토큰 재발급 로직 |
 | **서비스 약관** | `GET` | `/api/terms/signup` | 약관 페이지 뷰 제공 (Server Side View) |
 
-Sheets로 내보내기
 
 ---
 
@@ -56,7 +54,6 @@ Sheets로 내보내기
 | **좋아요 처리** | `POST` | `/api/posts/{postId}/like` | 게시물 좋아요/좋아요 취소 토글 |
 | **이미지 업로드** | `POST` | `/api/posts/image` | 임시 이미지 파일 업로드 (로컬 파일 저장 방식) |
 
-Sheets로 내보내기
 
 ---
 
@@ -71,7 +68,6 @@ Sheets로 내보내기
 | **댓글 수정** | `PUT` | `/api/{postId}/comments/{commentId}` | 특정 댓글 수정 |
 | **댓글 삭제** | `DELETE` | `/api/{postId}/comments/{commentId}` | 특정 댓글 삭제 |
 
-Sheets로 내보내기
 
 ---
 
@@ -83,7 +79,6 @@ Sheets로 내보내기
 | --- | --- | --- | --- |
 | **Presigned URL 발급** | `GET` | `/api/s3/presigned` | 파일명에 대한 AWS S3 업로드용 Presigned URL 생성 및 반환 |
 
-Sheets로 내보내기
 
 ---
 
