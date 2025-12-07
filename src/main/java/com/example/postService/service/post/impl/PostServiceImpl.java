@@ -173,10 +173,15 @@ public class PostServiceImpl implements PostService {
 
         Long userId = (Long) request.getAttribute("userId");
 
-        User user = userJpaRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+        UserProfile loginUserProfile = null;
 
-        UserProfile loginUserProfile = user.getUserProfile();  // 로그인 사용자 프로필
+        // 🔥 로그인 한 경우만 조회하도록 변경 (null 체크 추가)
+        if (userId != null) {
+            User user = userJpaRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+            loginUserProfile = user.getUserProfile();
+        }
+
 
         Post post = postJpaRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시물을 찾을 수 없습니다."));
