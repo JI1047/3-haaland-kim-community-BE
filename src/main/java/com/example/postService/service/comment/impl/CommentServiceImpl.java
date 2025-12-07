@@ -107,6 +107,7 @@ public class CommentServiceImpl implements CommentService {
      * 5. mapper을 통해 댓글 객체 생성 및 DB 저장
      * 6. post.getPostView().commentCountIncrease()로 댓글 수 증가
      * 7. 성공 메시지 반환
+     *
      * -----------------------------------------------------------
      */
     @Transactional
