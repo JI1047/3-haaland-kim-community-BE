@@ -76,7 +76,7 @@ public class CommentServiceImpl implements CommentService {
 
         for (Comment comment : comments) {
 
-            UserProfile userProfile = comment.getUserProfile();// 작성자 프로필 조회
+            UserProfile userProfile = comment.getUserProfile();// 작성자 프로필 조회 1
 
             boolean isOwner = loginuserProfile.equals(userProfile);
 
