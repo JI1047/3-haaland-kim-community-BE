@@ -35,6 +35,7 @@ public class GetPostResponseDto {
 
     private boolean hasLiked;
 
+    private boolean isOwner;
 
     private String nickname; //사용자 닉네임
 

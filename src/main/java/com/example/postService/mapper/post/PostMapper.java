@@ -34,12 +34,14 @@ public interface PostMapper {
 
 
     @Mapping(source = "alreadyLiked", target = "hasLiked")
+    @Mapping(source = "isOwner", target = "isOwner")
     GetPostResponseDto toGetPostResponseDto(
             Post post,
             PostContent postContent,
             PostView postView,
             UserProfile userProfile,
-            boolean alreadyLiked
+            boolean alreadyLiked,
+            boolean isOwner
     );
 
 

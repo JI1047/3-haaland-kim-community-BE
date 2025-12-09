@@ -194,8 +194,12 @@ public class PostServiceImpl implements PostService {
         boolean alreadyLiked =
                 postLikeJpaRepository.existsByPostAndUserProfile(post, loginUserProfile);
 
+        boolean isOwner =
+                post.getUserProfile().equals(loginUserProfile);
+
+
         GetPostResponseDto dto = postMapper.toGetPostResponseDto(
-                post, postContent, postView, authorProfile, alreadyLiked
+                post, postContent, postView, authorProfile, alreadyLiked,isOwner
         );
 
         return ResponseEntity.ok(dto);
