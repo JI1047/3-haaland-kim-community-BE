@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
  * <p>
  * - 회원 탈퇴 시 is_deleted = true, deleted_at = 현재시간 으로 업데이트 됨
  * - 이후 스케줄러가 주기적으로 실행되어 실제 delete 처리
+ *
  */
 @Service
 @RequiredArgsConstructor
