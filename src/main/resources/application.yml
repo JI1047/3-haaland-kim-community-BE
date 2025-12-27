@@ -1,7 +1,10 @@
 spring:
   datasource:
-    url: jdbc:mysql://community-rds.czgw60kqmqcu.ap-northeast-2.rds.amazonaws.com:3306/community?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false
-    username: admin
+    # 1. 주소를 로컬로 변경 (DBeaver에서 확인한 주소)
+    url: jdbc:mysql://localhost:3306/community?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+    # 2. 계정 정보 (DBeaver와 동일하게)
+    username: root
+    # 3. 아까 설정한 비밀번호 (비밀번호 없이 들어갔다면 빈값 "" 혹은 설정한 비번)
     password: rlawltjr123
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -36,11 +39,12 @@ file:
   upload-dir: uploads
 
 cors:
-  allowed-origins: "https://haaland-community.site, https://www.haaland-community.site"
-
+  allowed-origins: "https://haaland-community.site,https://www.haaland-community.site,http://localhost:3000"
 
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+app:
+  frontend-url: http://localhost:3000

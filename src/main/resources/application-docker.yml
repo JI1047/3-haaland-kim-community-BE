@@ -44,3 +44,5 @@ management:
     web:
       exposure:
         include: "*"
+app:
+  frontend-url: https://haaland-community.site

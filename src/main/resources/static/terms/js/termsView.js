@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.cookie = `termsAgreement=${encodeURIComponent(JSON.stringify(terms))}; path=/; max-age=3600; SameSite=Lax`;
 
-    window.location.href = `/signup-input`;
+    // HTML에서 넘겨준 FRONTEND_URL 변수를 앞에 붙여줍니다.
+    window.location.href = FRONTEND_URL + `/signup-input`;
   });
 });

@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/terms")
 public class TermsController {
 
-    @Value("${cors.allowed-origins}")
-    private String allowedOrigins;
+    // cors.allowed-origins 대신 전용 설정값을 읽어옵니다.
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @GetMapping("/signup")
     public String signupPage(Model model) {
-        // 여러 개가 들어있을 수도 있으니 첫 번째 주소만 사용
-        String frontendUrl = allowedOrigins.split(",")[0];
         model.addAttribute("frontendUrl", frontendUrl);
         return "termsView";
     }
