@@ -26,6 +26,7 @@ public class PostViewSchedulerService {
     /**
      *<게시물 Id, 요청 동안 들어온 조회수 누적>을 저장할 Map 객체 생성
      * 여러 요청 스레드가 동시에 같은 postId에 접근할 수 있기 때문에
+     *
      * thread-sage한 구조 필요 ConcurrentHasMap사용
      */
     private final Map<Long, Integer> viewCache = new ConcurrentHashMap<>();
