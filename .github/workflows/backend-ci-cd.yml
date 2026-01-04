@@ -58,6 +58,9 @@ jobs:
       - name: Remove previous container
         run: docker rm backend || true
 
+      - name: Cleanup old images
+        run: docker image prune -f
+
       - name: Run new container
         run: |
           docker run -d \
