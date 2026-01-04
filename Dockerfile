@@ -5,7 +5,7 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 RUN apk add --no-cache binutils
 
 # [개선] jdeps 분석 대신, 표준적인 모듈 리스트를 직접 할당
-# 프로젝트에서 특별한 모듈을 추가하지 않는 한 이 리스트로 충분합니다.
+# 프로젝트에서 특별한 모듈을 추가하지 않는 한 이 리스트로 충분합니다
 RUN $JAVA_HOME/bin/jlink \
     --verbose \
     --add-modules java.base,java.sql,java.naming,java.desktop,java.management,java.instrument,java.scripting,java.security.jgss,java.security.sasl,jdk.httpserver,jdk.jfr,jdk.unsupported \
