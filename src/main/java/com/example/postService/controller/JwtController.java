@@ -71,7 +71,7 @@ public class JwtController {
             ));
         }
 
-        // accessToken이 있지만 만료된 경우
+        // accessToken이 있지만 만료된 경우1
         boolean valid = tokenService.validateAccessToken(accessToken);
         if (!valid) {
             if (refreshToken != null) {
